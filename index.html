@@ -9,11 +9,23 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="toggle-container">
-        <button class="material-button icon-button" onclick="toggleDarkMode()">
-            <span class="material-icons">brightness_6</span>
-        </button>
+    <div class="top-bar">
+        <div class="menu-container">
+            <button class="material-button icon-button menu-button" onclick="toggleHamburgerMenu()">
+                <span class="material-icons">menu</span>
+            </button>
+            <div id="hamburgerMenu" class="hamburger-menu" style="display: none;">
+                <button class="menu-item" onclick="backupData()">Backup Data</button>
+                <button class="menu-item" onclick="document.getElementById('restoreInput').click()">Restore Data</button>
+            </div>
+        </div>
+        <div class="toggle-container">
+            <button class="material-button icon-button" onclick="toggleDarkMode()">
+                <span class="material-icons">brightness_6</span>
+            </button>
+        </div>
     </div>
+    <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="restoreData(event)">
 
     <!-- Main Page -->
     <div id="mainPage">
