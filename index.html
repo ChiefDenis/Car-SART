@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Service Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="toggle-container">
+        <button class="material-button icon-button" onclick="toggleDarkMode()">
+            <span class="material-icons">brightness_6</span>
+        </button>
+    </div>
+
+    <!-- Main Page -->
+    <div id="mainPage">
+        <h1>Car Service Tracker</h1>
+        <button class="material-button fab" onclick="openVehicleModal()">
+            <span class="material-icons">add</span>
+        </button>
+        <div class="card">
+            <h2>Vehicles</h2>
+            <div id="vehicleList" class="vehicle-list"></div>
+        </div>
+    </div>
+
+    <!-- Detail Page -->
+    <div id="detailPage" style="display: none;">
+        <button class="material-button icon-button" onclick="navigateTo('/')">
+            <span class="material-icons">arrow_back</span> Back
+        </button>
+        <h1 id="detailVehicleName"></h1>
+        <p id="detailVehicleNotes" class="notes"></p>
+
+        <!-- Current Information -->
+        <div class="card">
+            <h2>Current Information</h2>
+            <div class="form-container" id="detailCurrentInfoForm">
+                <div class="form-group">
+                    <input type="date" id="currentDate" class="material-input" required>
+                    <label for="currentDate">Current Date</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="currentMileage" class="material-input" min="0" required>
+                    <label for="currentMileage">Current Mileage</label>
+                </div>
+                <button class="material-button" onclick="updateCurrentInfo()">Update</button>
+            </div>
+        </div>
+
+        <!-- Completed Services -->
+        <div class="card">
+            <h2>Completed Services</h2>
+            <div class="form-container" id="detailCompletedForm">
+                <div class="form-group">
+                    <input type="date" id="compDate" class="material-input" required>
+                    <label for="compDate">Date</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="compDescription" class="material-input" placeholder=" " required>
+                    <label for="compDescription">Description</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="compShop" class="material-input" placeholder=" ">
+                    <label for="compShop">Shop</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="compCost" class="material-input" min="0" step="0.01" placeholder=" ">
+                    <label for="compCost">Cost (₦)</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="compMileage" class="material-input" min="0" placeholder=" ">
+                    <label for="compMileage">Mileage</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="compReceipt" class="material-input" placeholder=" ">
+                    <label for="compReceipt">Receipt #</label>
+                </div>
+                <div class="form-buttons">
+                    <button class="material-button" id="compSubmit" data-editing="false" data-index="-1" onclick="submitCompletedService()">Add Service</button>
+                    <button class="material-button cancel-btn" id="compCancel" onclick="cancelEdit('completed')" style="display: none;">Cancel</button>
+                </div>
+            </div>
+            <button class="material-button icon-button" onclick="exportToCSV('detailCompletedTable', 'completed_services.csv')">
+                <span class="material-icons">download</span> Export to CSV
+            </button>
+            <div class="table-container">
+                <table id="detailCompletedTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Shop</th>
+                            <th>Cost</th>
+                            <th>Mileage</th>
+                            <th>Receipt #</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailCompletedBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pending Services -->
+        <div class="card">
+            <h2>Pending Services</h2>
+            <div class="form-container" id="detailPendingForm">
+                <div class="form-group">
+                    <input type="text" id="pendDescription" class="material-input" placeholder=" " required>
+                    <label for="pendDescription">Description</label>
+                </div>
+                <div class="form-group">
+                    <input type="date" id="pendDueDate" class="material-input" placeholder=" ">
+                    <label for="pendDueDate">Due Date</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="pendDueMileage" class="material-input" min="0" placeholder=" ">
+                    <label for="pendDueMileage">Due Mileage</label>
+                </div>
+                <div class="form-group">
+                    <select id="pendPriority" class="material-input">
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                    <label for="pendPriority">Priority</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="pendNotes" class="material-input" placeholder=" ">
+                    <label for="pendNotes">Notes</label>
+                </div>
+                <div class="form-buttons">
+                    <button class="material-button" id="pendSubmit" data-editing="false" data-index="-1" onclick="submitPendingService()">Add Service</button>
+                    <button class="material-button cancel-btn" id="pendCancel" onclick="cancelEdit('pending')" style="display: none;">Cancel</button>
+                </div>
+            </div>
+            <button class="material-button icon-button" onclick="exportToCSV('detailPendingTable', 'pending_services.csv')">
+                <span class="material-icons">download</span> Export to CSV
+            </button>
+            <div class="table-container">
+                <table id="detailPendingTable">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th>Due Mileage</th>
+                            <th>Priority</th>
+                            <th>Notes</th>
+                            <th>Is Due</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailPendingBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Modal -->
+    <div id="vehicleModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="material-button close-btn" onclick="closeVehicleModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2 id="vehicleModalTitle">Add Vehicle</h2>
+            <div class="form-container">
+                <div class="form-group">
+                    <input type="text" id="vehicleName" class="material-input" placeholder=" " required>
+                    <label for="vehicleName">Vehicle Name</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="vehicleNotes" class="material-input" placeholder=" ">
+                    <label for="vehicleNotes">Notes</label>
+                </div>
+                <div class="form-buttons">
+                    <button class="material-button" id="vehicleSubmit" data-editing="false" data-index="-1" onclick="submitVehicle()">Add Vehicle</button>
+                    <button class="material-button cancel-btn" id="vehicleCancel" onclick="closeVehicleModal()" style="display: none;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snackbar -->
+    <div id="snackbar"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
