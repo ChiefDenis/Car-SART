@@ -205,7 +205,7 @@ window.addEventListener('popstate', () => {
 
 function renderPage() {
     try {
-        const path = window.location.pathname;
+        let path = window.location.pathname;
         console.log('Rendering page for path:', path);
         const mainPage = document.getElementById('mainPage');
         const detailPage = document.getElementById('detailPage');
@@ -214,11 +214,16 @@ function renderPage() {
             return;
         }
 
-        if (path === '/' || path === '' || path === '/carsart' || path === '/carsart/') {
+        // Normalize path for /carsart
+        if (path.startsWith('/carsart')) {
+            path = path.replace('/carsart', '');
+        }
+
+        if (path === '/' || path === '') {
             mainPage.style.display = 'block';
             detailPage.style.display = 'none';
             renderVehicleList();
-        } else if (path.startsWith('/vehicle/') || path.startsWith('/carsart/vehicle/')) {
+        } else if (path.startsWith('/vehicle/')) {
             selectedVehicleId = path.split('/vehicle/')[1];
             mainPage.style.display = 'none';
             detailPage.style.display = 'block';
@@ -430,7 +435,7 @@ function renderSelectedVehicle() {
             document.getElementById('detailVehicleNotes').textContent = vehicle.notes || '';
             document.getElementById('currentDate').value = vehicle.currentInfo.date;
             document.getElementById('currentMileage').value = vehicle.currentInfo.mileage;
-            renderTables();
+            renderServicesTable();
         } else {
             console.error('No vehicle found for ID:', selectedVehicleId);
             showSnackbar('Vehicle not found');
@@ -449,7 +454,7 @@ function updateCurrentInfo() {
             vehicle.currentInfo.date = document.getElementById('currentDate').value;
             vehicle.currentInfo.mileage = parseInt(document.getElementById('currentMileage').value) || 0;
             saveData();
-            renderTables();
+            renderServicesTable();
             showSnackbar('Current information updated');
         }
     } catch (e) {
@@ -457,240 +462,282 @@ function updateCurrentInfo() {
     }
 }
 
+// Service modal functions
+function openServiceModal(type = null, index = -1) {
+    try {
+        const modal = document.getElementById('serviceModal');
+        const formContainer = document.getElementById('serviceFormContainer');
+        if (!modal || !formContainer) {
+            console.error('Service modal elements not found');
+            return;
+        }
+
+        // Set radio button
+        const selectedType = type || 'pending';
+        document.querySelector(`input[name="serviceType"][value="${selectedType}"]`).checked = true;
+
+        // Load form
+        renderServiceForm(selectedType, index);
+
+        // Set modal state for editing
+        const submitButton = formContainer.querySelector('#serviceSubmit');
+        if (index >= 0) {
+            submitButton.textContent = 'Update Service';
+            submitButton.setAttribute('data-editing', 'true');
+            submitButton.setAttribute('data-index', index);
+            formContainer.querySelector('#serviceCancel').style.display = 'block';
+        } else {
+            submitButton.textContent = 'Add Service';
+            submitButton.setAttribute('data-editing', 'false');
+            submitButton.setAttribute('data-index', '-1');
+            formContainer.querySelector('#serviceCancel').style.display = 'none';
+        }
+
+        modal.style.display = 'flex';
+    } catch (e) {
+        console.error('Error in openServiceModal:', e);
+    }
+}
+
+function closeServiceModal() {
+    try {
+        const modal = document.getElementById('serviceModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.getElementById('serviceFormContainer').innerHTML = '';
+            document.querySelector('input[name="serviceType"][value="pending"]').checked = true;
+        }
+    } catch (e) {
+        console.error('Error in closeServiceModal:', e);
+    }
+}
+
+function handleServiceTypeChange(type) {
+    try {
+        const formContainer = document.getElementById('serviceFormContainer');
+        const isEditing = formContainer.querySelector('#serviceSubmit')?.getAttribute('data-editing') === 'true';
+        const index = parseInt(formContainer.querySelector('#serviceSubmit')?.getAttribute('data-index') || '-1');
+        renderServiceForm(type, isEditing ? index : -1);
+    } catch (e) {
+        console.error('Error in handleServiceTypeChange:', e);
+    }
+}
+
+function renderServiceForm(type, index) {
+    try {
+        const formContainer = document.getElementById('serviceFormContainer');
+        if (!formContainer) return;
+
+        const vehicle = getSelectedVehicle();
+        if (!vehicle) return;
+
+        let formHTML = '';
+        if (type === 'completed') {
+            const service = index >= 0 ? vehicle.completedServices[index] : {};
+            formHTML = `
+                <div class="form-group">
+                    <input type="date" id="serviceDate" class="material-input" value="${service.date || ''}" required>
+                    <label for="serviceDate">Date</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="serviceDescription" class="material-input" placeholder=" " value="${service.description || ''}" required>
+                    <label for="serviceDescription">Description</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="serviceShop" class="material-input" placeholder=" " value="${service.shop || ''}">
+                    <label for="serviceShop">Shop</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="serviceCost" class="material-input" min="0" step="0.01" placeholder=" " value="${service.cost || ''}">
+                    <label for="serviceCost">Cost (₦)</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="serviceMileage" class="material-input" min="0" placeholder=" " value="${service.mileage || ''}">
+                    <label for="serviceMileage">Mileage</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="serviceReceipt" class="material-input" placeholder=" " value="${service.receipt || ''}">
+                    <label for="serviceReceipt">Receipt #</label>
+                </div>
+                <div class="form-buttons">
+                    <button class="material-button" id="serviceSubmit" data-editing="false" data-index="-1" onclick="submitService('completed')">Add Service</button>
+                    <button class="material-button cancel-btn" id="serviceCancel" onclick="cancelEdit('completed')" style="display: none;">Cancel</button>
+                </div>
+            `;
+        } else {
+            const service = index >= 0 ? vehicle.pendingServices[index] : {};
+            formHTML = `
+                <div class="form-group">
+                    <input type="text" id="serviceDescription" class="material-input" placeholder=" " value="${service.description || ''}" required>
+                    <label for="serviceDescription">Description</label>
+                </div>
+                <div class="form-group">
+                    <input type="date" id="serviceDueDate" class="material-input" placeholder=" " value="${service.dueDate || ''}">
+                    <label for="serviceDueDate">Due Date</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="serviceDueMileage" class="material-input" min="0" placeholder=" " value="${service.dueMileage || ''}">
+                    <label for="serviceDueMileage">Due Mileage</label>
+                </div>
+                <div class="form-group">
+                    <select id="servicePriority" class="material-input">
+                        <option value="High" ${service.priority === 'High' ? 'selected' : ''}>High</option>
+                        <option value="Medium" ${service.priority === 'Medium' ? 'selected' : ''}>Medium</option>
+                        <option value="Low" ${service.priority === 'Low' ? 'selected' : ''}>Low</option>
+                    </select>
+                    <label for="servicePriority">Priority</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="serviceNotes" class="material-input" placeholder=" " value="${service.notes || ''}">
+                    <label for="serviceNotes">Notes</label>
+                </div>
+                <div class="form-buttons">
+                    <button class="material-button" id="serviceSubmit" data-editing="false" data-index="-1" onclick="submitService('pending')">Add Service</button>
+                    <button class="material-button cancel-btn" id="serviceCancel" onclick="cancelEdit('pending')" style="display: none;">Cancel</button>
+                </div>
+            `;
+        }
+
+        formContainer.innerHTML = formHTML;
+
+        // Restore editing state
+        if (index >= 0) {
+            const submitButton = formContainer.querySelector('#serviceSubmit');
+            submitButton.textContent = 'Update Service';
+            submitButton.setAttribute('data-editing', 'true');
+            submitButton.setAttribute('data-index', index);
+            formContainer.querySelector('#serviceCancel').style.display = 'block';
+        }
+    } catch (e) {
+        console.error('Error in renderServiceForm:', e);
+    }
+}
+
 // Function to clear form fields
-function clearCompletedForm() {
+function clearServiceForm(type) {
     try {
-        document.getElementById('compDate').value = '';
-        document.getElementById('compDescription').value = '';
-        document.getElementById('compShop').value = '';
-        document.getElementById('compCost').value = '';
-        document.getElementById('compMileage').value = '';
-        document.getElementById('compReceipt').value = '';
+        if (type === 'completed') {
+            document.getElementById('serviceDate').value = '';
+            document.getElementById('serviceDescription').value = '';
+            document.getElementById('serviceShop').value = '';
+            document.getElementById('serviceCost').value = '';
+            document.getElementById('serviceMileage').value = '';
+            document.getElementById('serviceReceipt').value = '';
+        } else {
+            document.getElementById('serviceDescription').value = '';
+            document.getElementById('serviceDueDate').value = '';
+            document.getElementById('serviceDueMileage').value = '';
+            document.getElementById('servicePriority').value = 'High';
+            document.getElementById('serviceNotes').value = '';
+        }
     } catch (e) {
-        console.error('Error in clearCompletedForm:', e);
+        console.error('Error in clearServiceForm:', e);
     }
 }
 
-function clearPendingForm() {
-    try {
-        document.getElementById('pendDescription').value = '';
-        document.getElementById('pendDueDate').value = '';
-        document.getElementById('pendDueMileage').value = '';
-        document.getElementById('pendPriority').value = 'High';
-        document.getElementById('pendNotes').value = '';
-    } catch (e) {
-        console.error('Error in clearPendingForm:', e);
-    }
-}
-
-// Function to handle completed service submission (add or update)
-function submitCompletedService() {
+// Function to handle service submission
+function submitService(type) {
     try {
         const vehicle = getSelectedVehicle();
         if (!vehicle) return;
 
-        const submitButton = document.getElementById('compSubmit');
+        const submitButton = document.getElementById('serviceSubmit');
         const isEditing = submitButton.getAttribute('data-editing') === 'true';
         const index = parseInt(submitButton.getAttribute('data-index'));
 
-        const service = {
-            date: document.getElementById('compDate').value,
-            description: document.getElementById('compDescription').value,
-            shop: document.getElementById('compShop').value,
-            cost: parseFloat(document.getElementById('compCost').value) || 0,
-            mileage: parseInt(document.getElementById('compMileage').value) || 0,
-            receipt: document.getElementById('compReceipt').value
-        };
+        if (type === 'completed') {
+            const service = {
+                date: document.getElementById('serviceDate').value,
+                description: document.getElementById('serviceDescription').value,
+                shop: document.getElementById('serviceShop').value,
+                cost: parseFloat(document.getElementById('serviceCost').value) || 0,
+                mileage: parseInt(document.getElementById('serviceMileage').value) || 0,
+                receipt: document.getElementById('serviceReceipt').value
+            };
 
-        if (service.description && service.date) {
-            if (isEditing) {
-                updateCompletedService(index, service);
-            } else {
-                vehicle.completedServices.push(service);
+            if (service.description && service.date) {
+                if (isEditing) {
+                    vehicle.completedServices[index] = service;
+                    showSnackbar('Completed service updated');
+                } else {
+                    vehicle.completedServices.push(service);
+                    showSnackbar('Completed service added');
+                }
                 saveData();
-                renderTables();
-                showSnackbar('Completed service added');
+                renderServicesTable();
+                clearServiceForm('completed');
+                closeServiceModal();
+            } else {
+                alert('Please enter at least a date and description.');
             }
-            clearCompletedForm();
-            resetForm('completed');
         } else {
-            alert('Please enter at least a date and description.');
+            const service = {
+                description: document.getElementById('serviceDescription').value,
+                dueDate: document.getElementById('serviceDueDate').value,
+                dueMileage: parseInt(document.getElementById('serviceDueMileage').value) || 0,
+                priority: document.getElementById('servicePriority').value,
+                notes: document.getElementById('serviceNotes').value
+            };
+
+            if (service.description) {
+                if (isEditing) {
+                    vehicle.pendingServices[index] = service;
+                    showSnackbar('Pending service updated');
+                } else {
+                    vehicle.pendingServices.push(service);
+                    showSnackbar('Pending service added');
+                }
+                saveData();
+                renderServicesTable();
+                clearServiceForm('pending');
+                closeServiceModal();
+            } else {
+                alert('Please enter a description.');
+            }
         }
     } catch (e) {
-        console.error('Error in submitCompletedService:', e);
+        console.error('Error in submitService:', e);
     }
 }
 
-// Function to handle pending service submission (add or update)
-function submitPendingService() {
+// Function to edit a service
+function editService(type, index) {
+    try {
+        openServiceModal(type, index);
+    } catch (e) {
+        console.error('Error in editService:', e);
+    }
+}
+
+// Function to delete a service
+function deleteService(type, index) {
     try {
         const vehicle = getSelectedVehicle();
         if (!vehicle) return;
 
-        const submitButton = document.getElementById('pendSubmit');
-        const isEditing = submitButton.getAttribute('data-editing') === 'true';
-        const index = parseInt(submitButton.getAttribute('data-index'));
-
-        const service = {
-            description: document.getElementById('pendDescription').value,
-            dueDate: document.getElementById('pendDueDate').value,
-            dueMileage: parseInt(document.getElementById('pendDueMileage').value) || 0,
-            priority: document.getElementById('pendPriority').value,
-            notes: document.getElementById('pendNotes').value
-        };
-
-        if (service.description) {
-            if (isEditing) {
-                updatePendingService(index, service);
+        if (confirm('Are you sure you want to delete this service?')) {
+            if (type === 'completed') {
+                vehicle.completedServices.splice(index, 1);
+                showSnackbar('Completed service deleted');
             } else {
-                vehicle.pendingServices.push(service);
-                saveData();
-                renderTables();
-                showSnackbar('Pending service added');
+                vehicle.pendingServices.splice(index, 1);
+                showSnackbar('Pending service deleted');
             }
-            clearPendingForm();
-            resetForm('pending');
-        } else {
-            alert('Please enter a description.');
+            saveData();
+            renderServicesTable();
         }
     } catch (e) {
-        console.error('Error in submitPendingService:', e);
-    }
-}
-
-// Function to edit a completed service
-function editCompletedService(index) {
-    try {
-        const vehicle = getSelectedVehicle();
-        if (!vehicle) return;
-
-        const service = vehicle.completedServices[index];
-        document.getElementById('compDate').value = service.date;
-        document.getElementById('compDescription').value = service.description;
-        document.getElementById('compShop').value = service.shop;
-        document.getElementById('compCost').value = service.cost;
-        document.getElementById('compMileage').value = service.mileage;
-        document.getElementById('compReceipt').value = service.receipt;
-
-        const submitButton = document.getElementById('compSubmit');
-        submitButton.textContent = 'Update Service';
-        submitButton.setAttribute('data-editing', 'true');
-        submitButton.setAttribute('data-index', index);
-        document.getElementById('compCancel').style.display = 'block';
-    } catch (e) {
-        console.error('Error in editCompletedService:', e);
-    }
-}
-
-// Function to edit a pending service
-function editPendingService(index) {
-    try {
-        const vehicle = getSelectedVehicle();
-        if (!vehicle) return;
-
-        const service = vehicle.pendingServices[index];
-        document.getElementById('pendDescription').value = service.description;
-        document.getElementById('pendDueDate').value = service.dueDate || '';
-        document.getElementById('pendDueMileage').value = service.dueMileage || '';
-        document.getElementById('pendPriority').value = service.priority;
-        document.getElementById('pendNotes').value = service.notes;
-
-        const submitButton = document.getElementById('pendSubmit');
-        submitButton.textContent = 'Update Service';
-        submitButton.setAttribute('data-editing', 'true');
-        submitButton.setAttribute('data-index', index);
-        document.getElementById('pendCancel').style.display = 'block';
-    } catch (e) {
-        console.error('Error in editPendingService:', e);
-    }
-}
-
-// Function to update a completed service
-function updateCompletedService(index, service) {
-    try {
-        const vehicle = getSelectedVehicle();
-        if (!vehicle) return;
-
-        vehicle.completedServices[index] = service;
-        saveData();
-        renderTables();
-        showSnackbar('Completed service updated');
-    } catch (e) {
-        console.error('Error in updateCompletedService:', e);
-    }
-}
-
-// Function to update a pending service
-function updatePendingService(index, service) {
-    try {
-        const vehicle = getSelectedVehicle();
-        if (!vehicle) return;
-
-        vehicle.pendingServices[index] = service;
-        saveData();
-        renderTables();
-        showSnackbar('Pending service updated');
-    } catch (e) {
-        console.error('Error in updatePendingService:', e);
+        console.error('Error in deleteService:', e);
     }
 }
 
 // Function to cancel editing
 function cancelEdit(type) {
     try {
-        if (type === 'completed') {
-            clearCompletedForm();
-            resetForm('completed');
-        } else {
-            clearPendingForm();
-            resetForm('pending');
-        }
+        clearServiceForm(type);
+        closeServiceModal();
     } catch (e) {
         console.error('Error in cancelEdit:', e);
-    }
-}
-
-// Function to reset form state
-function resetForm(type) {
-    try {
-        const submitButton = document.getElementById(type === 'completed' ? 'compSubmit' : 'pendSubmit');
-        const cancelButton = document.getElementById(type === 'completed' ? 'compCancel' : 'pendCancel');
-        submitButton.textContent = 'Add Service';
-        submitButton.setAttribute('data-editing', 'false');
-        submitButton.setAttribute('data-index', '-1');
-        cancelButton.style.display = 'none';
-    } catch (e) {
-        console.error('Error in resetForm:', e);
-    }
-}
-
-// Function to delete a completed service
-function deleteCompletedService(index) {
-    try {
-        const vehicle = getSelectedVehicle();
-        if (!vehicle) return;
-
-        vehicle.completedServices.splice(index, 1);
-        saveData();
-        renderTables();
-        showSnackbar('Completed service deleted');
-    } catch (e) {
-        console.error('Error in deleteCompletedService:', e);
-    }
-}
-
-// Function to delete a pending service
-function deletePendingService(index) {
-    try {
-        const vehicle = getSelectedVehicle();
-        if (!vehicle) return;
-
-        vehicle.pendingServices.splice(index, 1);
-        saveData();
-        renderTables();
-        showSnackbar('Pending service deleted');
-    } catch (e) {
-        console.error('Error in deletePendingService:', e);
     }
 }
 
@@ -741,53 +788,55 @@ function exportToCSV(tableId, filename) {
     }
 }
 
-// Function to render both tables
-function renderTables() {
+// Function to render services table
+function renderServicesTable() {
     try {
         const vehicle = getSelectedVehicle();
         if (!vehicle) return;
 
-        const compBody = document.getElementById('detailCompletedBody');
-        compBody.innerHTML = '';
-        vehicle.completedServices.forEach((service, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${service.date}</td>
-                <td>${service.description}</td>
-                <td>${service.shop}</td>
-                <td>₦${service.cost.toFixed(2)}</td>
-                <td>${service.mileage}</td>
-                <td>${service.receipt}</td>
-                <td>
-                    <button class="edit-btn" onclick="editCompletedService(${index})"><span class="material-icons">edit</span></button>
-                    <button class="delete-btn" onclick="deleteCompletedService(${index})"><span class="material-icons">delete</span></button>
-                </td>
-            `;
-            compBody.appendChild(row);
+        const services = [
+            ...vehicle.pendingServices.map((s, index) => ({ ...s, type: 'pending', index })),
+            ...vehicle.completedServices.map((s, index) => ({ ...s, type: 'completed', index }))
+        ];
+
+        // Sort: Pending first, then by priority (High=1, Medium=2, Low=3), then by date descending for Completed
+        services.sort((a, b) => {
+            if (a.type !== b.type) {
+                return a.type === 'pending' ? -1 : 1;
+            }
+            if (a.type === 'pending') {
+                const priorityOrder = { High: 1, Medium: 2, Low: 3 };
+                return priorityOrder[a.priority] - priorityOrder[b.priority];
+            }
+            return new Date(b.date) - new Date(a.date);
         });
 
-        const pendBody = document.getElementById('detailPendingBody');
-        pendBody.innerHTML = '';
-        vehicle.pendingServices.forEach((service, index) => {
-            const isDue = isServiceDue(service);
+        const servicesBody = document.getElementById('detailServicesBody');
+        servicesBody.innerHTML = '';
+        services.forEach(service => {
+            const isDue = service.type === 'pending' && isServiceDue(service);
             const row = document.createElement('tr');
             if (isDue) row.classList.add('due');
             row.innerHTML = `
+                <td>${service.type.charAt(0).toUpperCase() + service.type.slice(1)}</td>
                 <td>${service.description}</td>
-                <td>${service.dueDate || ''}</td>
-                <td>${service.dueMileage || ''}</td>
-                <td>${service.priority}</td>
-                <td>${service.notes}</td>
-                <td>${isDue ? 'Yes' : 'No'}</td>
+                <td>${service.type === 'pending' ? (service.dueDate || '') : (service.date || '')}</td>
+                <td>${service.type === 'pending' ? (service.dueMileage || '') : (service.mileage || '')}</td>
+                <td>${service.type === 'pending' ? (service.priority || '') : ''}</td>
+                <td>${service.type === 'completed' ? `₦${(service.cost || 0).toFixed(2)}` : ''}</td>
+                <td>${service.type === 'completed' ? (service.shop || '') : ''}</td>
+                <td>${service.type === 'completed' ? (service.receipt || '') : ''}</td>
+                <td>${service.type === 'pending' ? (service.notes || '') : ''}</td>
+                <td>${service.type === 'pending' ? (isDue ? 'Yes' : 'No') : ''}</td>
                 <td>
-                    <button class="edit-btn" onclick="editPendingService(${index})"><span class="material-icons">edit</span></button>
-                    <button class="delete-btn" onclick="deletePendingService(${index})"><span class="material-icons">delete</span></button>
+                    <button class="edit-btn" onclick="editService('${service.type}', ${service.index})"><span class="material-icons">edit</span></button>
+                    <button class="delete-btn" onclick="deleteService('${service.type}', ${service.index})"><span class="material-icons">delete</span></button>
                 </td>
             `;
-            pendBody.appendChild(row);
+            servicesBody.appendChild(row);
         });
     } catch (e) {
-        console.error('Error in renderTables:', e);
+        console.error('Error in renderServicesTable:', e);
     }
 }
 

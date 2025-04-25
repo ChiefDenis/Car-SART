@@ -130,7 +130,7 @@ h2 {
 }
 
 .vehicle-list {
-    display: flexor
+    display: flex;
     flex-direction: column;
     gap: 12px;
     margin-top: 16px;
@@ -218,7 +218,7 @@ h2 {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
     padding: 24px;
-    max-width: 500px;
+    max-width: 600px;
     width: 90%;
     position: relative;
 }
@@ -257,10 +257,16 @@ h2 {
     transform: scale(1.1);
 }
 
+.service-fab {
+    top: 72px; /* Below Back button */
+    right: 16px;
+}
+
 .form-container {
     display: grid;
     grid-template-columns: 1fr;
     gap: 12px;
+    margin-top: 16px;
 }
 
 .form-group {
@@ -374,6 +380,28 @@ h2 {
     flex-wrap: wrap;
 }
 
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
 .toggle-container {
     display: flex;
     justify-content: flex-end;
@@ -402,6 +430,18 @@ th {
     color: var(--text);
     position: sticky;
     top: 0;
+}
+
+th:nth-child(1), td:nth-child(1) { /* Type */
+    width: 100px;
+}
+
+th:nth-child(5), td:nth-child(5) { /* Priority */
+    width: 80px;
+}
+
+th:nth-child(10), td:nth-child(10) { /* Is Due */
+    width: 80px;
 }
 
 tr.due {
