@@ -17,12 +17,8 @@
             <div id="hamburgerMenu" class="hamburger-menu" style="display: none;">
                 <button class="menu-item" onclick="backupData()">Backup Data</button>
                 <button class="menu-item" onclick="document.getElementById('restoreInput').click()">Restore Data</button>
+                <button class="menu-item" onclick="toggleDarkMode()">Toggle Dark Mode</button>
             </div>
-        </div>
-        <div class="toggle-container">
-            <button class="material-button icon-button" onclick="toggleDarkMode()">
-                <span class="material-icons">brightness_6</span>
-            </button>
         </div>
     </div>
     <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="restoreData(event)">
@@ -52,27 +48,20 @@
             <span class="material-icons">add</span>
         </button>
 
-        <!-- Current Information -->
-        <div class="card">
-            <h2>Current Information</h2>
-            <div class="form-container" id="detailCurrentInfoForm">
-                <div class="form-group">
-                    <input type="date" id="currentDate" class="material-input" required>
-                    <label for="currentDate">Current Date</label>
-                </div>
-                <div class="form-group">
-                    <input type="number" id="currentMileage" class="material-input" min="0" required>
-                    <label for="currentMileage">Current Mileage</label>
-                </div>
-                <button class="material-button" onclick="updateCurrentInfo()">Update</button>
-            </div>
+        <!-- Current Information Strip -->
+        <div class="info-strip">
+            <span><strong>Date:</strong> <span id="currentDateDisplay"></span></span>
+            <span><strong>Mileage:</strong> <span id="currentMileageDisplay"></span></span>
+            <button class="edit-info-btn" onclick="openCurrentInfoModal()">
+                <span class="material-icons">edit</span>
+            </button>
         </div>
 
         <!-- Services -->
         <div class="card">
             <h2>Services</h2>
             <button class="material-button icon-button" onclick="exportToCSV('detailServicesTable', 'services.csv')">
-                <span class="material-icons">download</span> Export to CSV
+                <span class="material-icons">download</span> Export
             </button>
             <div class="table-container">
                 <table id="detailServicesTable">
@@ -139,6 +128,41 @@
                 </label>
             </div>
             <div id="serviceFormContainer" class="form-container"></div>
+        </div>
+    </div>
+
+    <!-- Current Info Modal -->
+    <div id="currentInfoModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="material-button close-btn" onclick="closeCurrentInfoModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2>Edit Current Information</h2>
+            <div class="form-container">
+                <div class="form-group">
+                    <input type="date" id="modalCurrentDate" class="material-input" required>
+                    <label for="modalCurrentDate">Current Date</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="modalCurrentMileage" class="material-input" min="0" required>
+                    <label for="modalCurrentMileage">Current Mileage</label>
+                </div>
+                <div class="form-buttons">
+                    <button class="material-button" onclick="submitCurrentInfo()">Update</button>
+                    <button class="material-button cancel-btn" onclick="closeCurrentInfoModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Detail Modal -->
+    <div id="serviceDetailModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="material-button close-btn" onclick="closeServiceDetailModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2>Service Details</h2>
+            <ul id="serviceDetailList" class="service-detail-list"></ul>
         </div>
     </div>
 

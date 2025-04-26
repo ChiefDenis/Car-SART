@@ -88,6 +88,7 @@ function toggleDarkMode() {
     try {
         document.body.classList.toggle('dark');
         localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        toggleHamburgerMenu(); // Close menu after action
     } catch (e) {
         console.error('Error in toggleDarkMode:', e);
     }
@@ -107,16 +108,46 @@ function toggleHamburgerMenu() {
 }
 
 // Function to backup localStorage data
-function backupData() {
+async function backupData() {
     try {
         const data = JSON.stringify(localStorage);
         const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'backup.json';
-        a.click();
-        URL.revokeObjectURL(url);
+
+        // Generate filename with date and time (e.g., CSART-backup-2025-04-26-12-57-00.json)
+        const now = new Date();
+        const timestamp = now.getFullYear() + '-' +
+                         String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                         String(now.getDate()).padStart(2, '0') + '-' +
+                         String(now.getHours()).padStart(2, '0') + '-' +
+                         String(now.getMinutes()).padStart(2, '0') + '-' +
+                         String(now.getSeconds()).padStart(2, '0');
+        const filename = `CSART-backup-${timestamp}.json`;
+
+        // Check if running on desktop (basic heuristic: screen width > 600px)
+        const isDesktop = window.innerWidth > 600;
+
+        if (isDesktop && window.showSaveFilePicker) {
+            // Use File System Access API for desktop save dialog
+            const fileHandle = await window.showSaveFilePicker({
+                suggestedName: filename,
+                types: [{
+                    description: 'JSON Files',
+                    accept: { 'application/json': ['.json'] }
+                }]
+            });
+            const writable = await fileHandle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+        } else {
+            // Fallback for mobile or unsupported browsers
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
         showSnackbar('Data backed up');
         toggleHamburgerMenu(); // Close menu after action
     } catch (e) {
@@ -161,6 +192,42 @@ function restoreData(event) {
     } catch (e) {
         console.error('Error in restoreData:', e);
         showSnackbar('Restore failed');
+    }
+}
+
+// Function to sync date with time server
+async function syncDateWithTimeServer(vehicle) {
+    try {
+        // Set a timeout for the fetch request (5 seconds)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const response = await fetch('http://worldtimeapi.org/api/timezone/Etc/UTC', {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const serverDate = new Date(data.datetime).toISOString().split('T')[0];
+
+        // Update vehicle's currentInfo.date if unset or significantly outdated
+        if (!vehicle.currentInfo.date || Math.abs(new Date(vehicle.currentInfo.date) - new Date(serverDate)) > 24 * 60 * 60 * 1000) {
+            vehicle.currentInfo.date = serverDate;
+            saveData();
+            console.log('Synced date with time server:', serverDate);
+        }
+    } catch (e) {
+        console.warn('Failed to sync date with time server:', e);
+        // Fallback to device time if unset
+        if (!vehicle.currentInfo.date) {
+            vehicle.currentInfo.date = new Date().toISOString().split('T')[0];
+            saveData();
+            console.log('Set date to device time:', vehicle.currentInfo.date);
+        }
     }
 }
 
@@ -427,14 +494,17 @@ function renderVehicleList() {
 }
 
 // Function to render selected vehicle’s data
-function renderSelectedVehicle() {
+async function renderSelectedVehicle() {
     try {
         const vehicle = getSelectedVehicle();
         if (vehicle) {
+            // Sync date with time server
+            await syncDateWithTimeServer(vehicle);
+
             document.getElementById('detailVehicleName').textContent = vehicle.name;
             document.getElementById('detailVehicleNotes').textContent = vehicle.notes || '';
-            document.getElementById('currentDate').value = vehicle.currentInfo.date;
-            document.getElementById('currentMileage').value = vehicle.currentInfo.mileage;
+            document.getElementById('currentDateDisplay').textContent = vehicle.currentInfo.date;
+            document.getElementById('currentMileageDisplay').textContent = vehicle.currentInfo.mileage;
             renderServicesTable();
         } else {
             console.error('No vehicle found for ID:', selectedVehicleId);
@@ -446,19 +516,54 @@ function renderSelectedVehicle() {
     }
 }
 
-// Function to update current date and mileage
-function updateCurrentInfo() {
+// Current Info Modal functions
+function openCurrentInfoModal() {
+    try {
+        const modal = document.getElementById('currentInfoModal');
+        const vehicle = getSelectedVehicle();
+        if (!modal || !vehicle) {
+            console.error('Current info modal or vehicle not found');
+            return;
+        }
+
+        document.getElementById('modalCurrentDate').value = vehicle.currentInfo.date;
+        document.getElementById('modalCurrentMileage').value = vehicle.currentInfo.mileage;
+        modal.style.display = 'flex';
+    } catch (e) {
+        console.error('Error in openCurrentInfoModal:', e);
+    }
+}
+
+function closeCurrentInfoModal() {
+    try {
+        const modal = document.getElementById('currentInfoModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.getElementById('modalCurrentDate').value = '';
+            document.getElementById('modalCurrentMileage').value = '';
+        }
+    } catch (e) {
+        console.error('Error in closeCurrentInfoModal:', e);
+    }
+}
+
+function submitCurrentInfo() {
     try {
         const vehicle = getSelectedVehicle();
         if (vehicle) {
-            vehicle.currentInfo.date = document.getElementById('currentDate').value;
-            vehicle.currentInfo.mileage = parseInt(document.getElementById('currentMileage').value) || 0;
+            vehicle.currentInfo.date = document.getElementById('modalCurrentDate').value;
+            vehicle.currentInfo.mileage = parseInt(document.getElementById('modalCurrentMileage').value) || 0;
+            if (!vehicle.currentInfo.date) {
+                alert('Please enter a valid date.');
+                return;
+            }
             saveData();
-            renderServicesTable();
+            renderSelectedVehicle();
             showSnackbar('Current information updated');
+            closeCurrentInfoModal();
         }
     } catch (e) {
-        console.error('Error in updateCurrentInfo:', e);
+        console.error('Error in submitCurrentInfo:', e);
     }
 }
 
@@ -741,6 +846,64 @@ function cancelEdit(type) {
     }
 }
 
+// Function to open service detail modal
+function openServiceDetailModal(type, index) {
+    try {
+        const vehicle = getSelectedVehicle();
+        if (!vehicle) return;
+
+        const modal = document.getElementById('serviceDetailModal');
+        const list = document.getElementById('serviceDetailList');
+        if (!modal || !list) {
+            console.error('Service detail modal elements not found');
+            return;
+        }
+
+        list.innerHTML = '';
+        let service;
+        if (type === 'completed') {
+            service = vehicle.completedServices[index];
+            list.innerHTML = `
+                <li><strong>Type:</strong> Completed</li>
+                <li><strong>Description:</strong> ${service.description || '-'}</li>
+                <li><strong>Date:</strong> ${service.date || '-'}</li>
+                <li><strong>Mileage:</strong> ${service.mileage || '-'}</li>
+                <li><strong>Cost:</strong> ₦${(service.cost || 0).toFixed(2)}</li>
+                <li><strong>Shop:</strong> ${service.shop || '-'}</li>
+                <li><strong>Receipt #:</strong> ${service.receipt || '-'}</li>
+            `;
+        } else {
+            service = vehicle.pendingServices[index];
+            list.innerHTML = `
+                <li><strong>Type:</strong> Pending</li>
+                <li><strong>Description:</strong> ${service.description || '-'}</li>
+                <li><strong>Due Date:</strong> ${service.dueDate || '-'}</li>
+                <li><strong>Due Mileage:</strong> ${service.dueMileage || '-'}</li>
+                <li><strong>Priority:</strong> ${service.priority || '-'}</li>
+                <li><strong>Notes:</strong> ${service.notes || '-'}</li>
+                <li><strong>Is Due:</strong> ${isServiceDue(service) ? 'Yes' : 'No'}</li>
+            `;
+        }
+
+        modal.style.display = 'flex';
+    } catch (e) {
+        console.error('Error in openServiceDetailModal:', e);
+    }
+}
+
+// Function to close service detail modal
+function closeServiceDetailModal() {
+    try {
+        const modal = document.getElementById('serviceDetailModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.getElementById('serviceDetailList').innerHTML = '';
+        }
+    } catch (e) {
+        console.error('Error in closeServiceDetailModal:', e);
+    }
+}
+
 // Function to check if a pending service is due
 function isServiceDue(service) {
     try {
@@ -771,7 +934,7 @@ function exportToCSV(tableId, filename) {
                     if (cell.textContent.startsWith('₦')) {
                         return `"${cell.textContent.replace('₦', '')}"`;
                     }
-                    return `"${cell.textContent}"`;
+                    return `"${cell.textContent.replace(/Pending|Completed/, '').trim()}"`;
                 })
                 .join(',')
         ).join('\n');
@@ -815,10 +978,22 @@ function renderServicesTable() {
         servicesBody.innerHTML = '';
         services.forEach(service => {
             const isDue = service.type === 'pending' && isServiceDue(service);
+            const priorityClass = service.type === 'pending' ? 
+                (service.priority === 'High' ? 'priority-high' : 
+                 service.priority === 'Medium' ? 'priority-medium' : 'priority-low') : '';
+            const priorityTagClass = service.type === 'pending' ? 
+                (service.priority === 'High' ? 'high' : 
+                 service.priority === 'Medium' ? 'medium' : 'low') : '';
             const row = document.createElement('tr');
-            if (isDue) row.classList.add('due');
+            if (isDue && !priorityClass) row.classList.add('due');
+            if (priorityClass) row.classList.add(priorityClass);
+            row.setAttribute('aria-label', `View details for ${service.description}`);
             row.innerHTML = `
-                <td>${service.type.charAt(0).toUpperCase() + service.type.slice(1)}</td>
+                <td>
+                    ${service.type === 'pending' ? 
+                        `<span class="pending-tag ${priorityTagClass}">Pending</span>` : 
+                        `<span class="completed-tag">Completed</span>`}
+                </td>
                 <td>${service.description}</td>
                 <td>${service.type === 'pending' ? (service.dueDate || '') : (service.date || '')}</td>
                 <td>${service.type === 'pending' ? (service.dueMileage || '') : (service.mileage || '')}</td>
@@ -829,10 +1004,11 @@ function renderServicesTable() {
                 <td>${service.type === 'pending' ? (service.notes || '') : ''}</td>
                 <td>${service.type === 'pending' ? (isDue ? 'Yes' : 'No') : ''}</td>
                 <td>
-                    <button class="edit-btn" onclick="editService('${service.type}', ${service.index})"><span class="material-icons">edit</span></button>
-                    <button class="delete-btn" onclick="deleteService('${service.type}', ${service.index})"><span class="material-icons">delete</span></button>
+                    <button class="edit-btn" onclick="event.stopPropagation(); editService('${service.type}', ${service.index})"><span class="material-icons">edit</span></button>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteService('${service.type}', ${service.index})"><span class="material-icons">delete</span></button>
                 </td>
             `;
+            row.addEventListener('click', () => openServiceDetailModal(service.type, service.index));
             servicesBody.appendChild(row);
         });
     } catch (e) {
@@ -857,6 +1033,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (menu && menuButton && !menu.contains(e.target) && !menuButton.contains(e.target)) {
             menu.style.display = 'none';
             menu.classList.remove('show');
+        }
+    });
+    // Close service detail modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeServiceDetailModal();
         }
     });
     repairVehiclesData();
