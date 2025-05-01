@@ -21,7 +21,7 @@
             <button class="material-button icon-button menu-button" onclick="toggleHamburgerMenu()" aria-label="Open navigation menu">
                 <span class="material-icons">menu</span>
             </button>
-            <div id="hamburgerMenu" class="navigation-drawer" style="display: none;">
+            <div id="hamburgerMenu" class="navigation-drawer">
                 <div class="navigation-drawer-header">
                     <h3>Menu</h3>
                     <button class="material-button icon-btn" onclick="toggleHamburgerMenu()" aria-label="Close navigation menu">
@@ -45,7 +45,7 @@
             </div>
         </div>
     </div>
-    <div id="scrim" class="scrim" style="display: none;" onclick="toggleHamburgerMenu()"></div>
+    <div id="scrim" class="scrim" onclick="toggleHamburgerMenu()"></div>
     <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="restoreData(event)">
 
     <!-- Main Page -->

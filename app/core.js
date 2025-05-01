@@ -39,10 +39,8 @@ function toggleHamburgerMenu() {
         const menu = document.getElementById('hamburgerMenu');
         const scrim = document.getElementById('scrim');
         if (menu && scrim) {
-            const isOpen = menu.style.display === 'flex';
-            menu.style.display = isOpen ? 'none' : 'flex';
-            scrim.style.display = isOpen ? 'none' : 'block';
             menu.classList.toggle('show');
+            scrim.classList.toggle('show');
         }
     } catch (e) {
         console.error('Error in toggleHamburgerMenu:', e);
@@ -218,9 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const menuButton = document.querySelector('.menu-button');
         const scrim = document.getElementById('scrim');
         if (menu && menuButton && scrim && !menu.contains(e.target) && !menuButton.contains(e.target)) {
-            menu.style.display = 'none';
-            scrim.style.display = 'none';
             menu.classList.remove('show');
+            scrim.classList.remove('show');
         }
     });
     // Close service detail modal with Escape key

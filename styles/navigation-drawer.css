@@ -27,7 +27,12 @@
     height: 100%;
     background-color: var(--md-sys-color-scrim, #000000);
     opacity: 0.32; /* MD3 scrim opacity */
-    z-index: 99;
+    z-index: 1100; /* Below drawer, above content */
+    display: none;
+}
+
+.scrim.show {
+    display: block;
 }
 
 /* Navigation Drawer */
@@ -39,7 +44,7 @@
     max-width: 360px; /* MD3 recommended max width */
     height: 100%;
     background-color: var(--md-sys-color-surface, #fffbff);
-    z-index: 100;
+    z-index: 1200; /* Above scrim */
     display: flex;
     flex-direction: column;
     transform: translateX(-100%);

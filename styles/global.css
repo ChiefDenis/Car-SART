@@ -17,6 +17,9 @@
     /* MD3 color tokens */
     --md-sys-color-surface-container-low: #f7f2fa;
     --md-sys-color-on-surface: #1c1b1f;
+    --md-sys-color-on-surface-variant: #49454f;
+    --md-sys-color-primary: #6750a4;
+    --md-sys-color-on-primary: #ffffff;
 }
 
 body.dark {
@@ -37,6 +40,9 @@ body.dark {
     /* MD3 dark mode color tokens */
     --md-sys-color-surface-container-low: #1b1b1f;
     --md-sys-color-on-surface: #e7e1e8;
+    --md-sys-color-on-surface-variant: #cac4d0;
+    --md-sys-color-primary: #d0bcff;
+    --md-sys-color-on-primary: #381e72;
 }
 
 * {
