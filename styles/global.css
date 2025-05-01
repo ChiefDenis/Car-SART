@@ -1,0 +1,176 @@
+:root {
+    --primary: #3b82f6; /* Blue 500 */
+    --primary-dark: #1e3a8a; /* Blue 900 */
+    --accent: #f43f5e; /* Rose 500 */
+    --amber: #fef3c7; /* Amber 100, pastel for rows */
+    --amber-btn: #FFC107; /* Amber 600, high-contrast for buttons */
+    --amber-btn-dark: #FFB300; /* Amber 700, for button hover */
+    --background: #f8fafc; /* Slate 50 */
+    --card-bg: #ffffff;
+    --text: #1e293b; /* Slate 800 */
+    --text-secondary: #64748b; /* Slate 500 */
+    --border: #e2e8f0; /* Slate 200 */
+    --due-bg: #fee2e2; /* Red 100, pastel */
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1); /* MD3 elevation 1dp */
+    --border-radius: 12px;
+
+    /* MD3 color tokens */
+    --md-sys-color-surface-container-low: #f7f2fa;
+    --md-sys-color-on-surface: #1c1b1f;
+}
+
+body.dark {
+    --primary: #60a5fa; /* Blue 400 */
+    --primary-dark: #1e40af; /* Blue 800 */
+    --accent: #fb7185; /* Rose 400 */
+    --amber: #fcd34d; /* Amber 300, pastel for rows */
+    --amber-btn: #f59e0b; /* Amber 500, high-contrast for buttons */
+    --amber-btn-dark: #d97706; /* Amber 600, for button hover */
+    --background: #1e293b; /* Slate 800 */
+    --card-bg: #334155; /* Slate 700 */
+    --text: #e2e8f0; /* Slate 200 */
+    --text-secondary: #94a3b8; /* Slate 400 */
+    --border: #475569; /* Slate 600 */
+    --due-bg: #f87171; /* Red 400, pastel */
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2); /* MD3 elevation 1dp for dark mode */
+
+    /* MD3 dark mode color tokens */
+    --md-sys-color-surface-container-low: #1b1b1f;
+    --md-sys-color-on-surface: #e7e1e8;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background);
+    color: var(--text);
+    padding: 16px;
+    font-size: 1rem;
+    line-height: 1.5;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 24px;
+}
+
+h2 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text);
+    margin: 16px 0;
+}
+
+.card {
+    background: var(--md-sys-color-surface-container-low, #f7f2fa);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 24px;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 88px; /* Add space for floating FABs */
+}
+
+body.dark .card {
+    background: var(--md-sys-color-surface-container-low, #1b1b1f);
+}
+
+.card h2 {
+    margin: 0 0 16px 0; /* Adjusted spacing below title */
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px; /* MD3 title-medium */
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+}
+
+body.dark .card h2 {
+    color: var(--md-sys-color-on-surface, #e7e1e8);
+}
+
+.material-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    min-height: 48px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.material-button:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.02);
+}
+
+.material-button:active {
+    transform: scale(0.98);
+}
+
+.icon-button {
+    gap: 8px;
+    padding: 8px 16px;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1.5rem;
+}
+
+.edit-btn {
+    background: none;
+    border: none;
+    color: var(--amber-btn);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1.5rem;
+}
+
+.delete-btn:hover {
+    color: var(--accent);
+}
+
+.edit-btn:hover {
+    color: var(--amber-btn-dark);
+}
+
+.notes {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+@media (min-width: 600px) {
+    h1 {
+        font-size: 2.25rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .card {
+        padding: 24px;
+    }
+}

@@ -1,0 +1,29 @@
+#snackbar {
+    visibility: hidden;
+    background-color: var(--text);
+    color: var(--card-bg);
+    padding: 12px 24px;
+    border-radius: 8px;
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: var(--shadow);
+    font-size: 0.875rem;
+    z-index: 1000;
+}
+
+#snackbar.show {
+    visibility: visible;
+    animation: slideIn 0.5s forwards, slideOut 0.5s 2.5s forwards;
+}
+
+@keyframes slideIn {
+    from { bottom: -40px; opacity: 0; }
+    to { bottom: 16px; opacity: 1; }
+}
+
+@keyframes slideOut {
+    from { bottom: 16px; opacity: 1; }
+    to { bottom: -40px; opacity: 0; }
+}

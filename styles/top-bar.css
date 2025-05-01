@@ -1,0 +1,207 @@
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 80;
+    height: 64px; /* Maintain height for layout purposes */
+    background: transparent; /* Fully transparent */
+}
+
+.detail-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Ensure proper spacing */
+    position: static; /* Flows in document */
+    z-index: 70;
+    background: transparent; /* Fully transparent */
+}
+
+/* MD3-specific variables */
+:root {
+    --md3-primary: #1976D2;
+    --md3-on-primary: #FFFFFF;
+    --md3-surface: #FFFFFF;
+    --md3-on-surface: #212121;
+    --md3-on-surface-variant: #757575;
+    --md3-state-layer-opacity-hover: 0.08;
+    --md3-state-layer-opacity-pressed: 0.12;
+    --md3-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+body.dark {
+    --md3-surface: #121212;
+    --md3-on-surface: #E0E0E0;
+    --md3-on-surface-variant: #B0B0B0;
+}
+
+.menu-container {
+    position: relative;
+    padding: 8px; /* Add padding around the menu button for breathing room */
+}
+
+/* MD3 Icon Button Styling */
+.menu-button,
+.back-button,
+.search-button,
+.clear-search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; /* MD3 touch target size */
+    height: 40px;
+    border-radius: 50%; /* Circular shape */
+    background: transparent;
+    color: var(--md3-on-surface);
+    transition: background 0.3s ease;
+}
+
+.menu-button:hover,
+.back-button:hover,
+.search-button:hover,
+.clear-search:hover {
+    background: rgba(33, 33, 33, var(--md3-state-layer-opacity-hover)); /* State layer on hover */
+}
+
+body.dark .menu-button:hover,
+body.dark .back-button:hover,
+body.dark .search-button:hover,
+body.dark .clear-search:hover {
+    background: rgba(224, 224, 224, var(--md3-state-layer-opacity-hover));
+}
+
+.menu-button:active,
+.back-button:active,
+.search-button:active,
+.clear-search:active {
+    background: rgba(33, 33, 33, var(--md3-state-layer-opacity-pressed)); /* State layer on press */
+}
+
+body.dark .menu-button:active,
+body.dark .back-button:active,
+body.dark .search-button:active,
+body.dark .clear-search:active {
+    background: rgba(224, 224, 224, var(--md3-state-layer-opacity-pressed));
+}
+
+.menu-button:focus,
+.back-button:focus,
+.search-button:focus,
+.clear-search:focus {
+    outline: 2px solid var(--md3-primary);
+    outline-offset: 2px;
+}
+
+.menu-button .material-icons,
+.back-button .material-icons,
+.search-button .material-icons,
+.clear-search .material-icons {
+    font-size: 24px; /* MD3 icon size */
+}
+
+/* MD3 Menu Styling */
+.hamburger-menu {
+    position: absolute;
+    top: 48px;
+    left: 0;
+    background: var(--md3-surface);
+    box-shadow: var(--md3-elevation-1);
+    border-radius: 8px; /* MD3 rounded corners */
+    padding: 8px 0;
+    z-index: 85;
+    min-width: 200px; /* MD3 minimum menu width */
+}
+
+body.dark .hamburger-menu {
+    background: var(--md3-surface);
+    box-shadow: var(--md3-elevation-1);
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px; /* MD3 spacing */
+    background: transparent;
+    color: var(--md3-on-surface);
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.875rem; /* MD3 body-medium */
+    font-weight: 400;
+    text-align: left;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+body.dark .menu-item {
+    color: var(--md3-on-surface);
+}
+
+.menu-item:hover {
+    background: rgba(33, 33, 33, var(--md3-state-layer-opacity-hover)); /* State layer on hover */
+}
+
+body.dark .menu-item:hover {
+    background: rgba(224, 224, 224, var(--md3-state-layer-opacity-hover));
+}
+
+.menu-item:focus {
+    outline: 2px solid var(--md3-primary);
+    outline-offset: -2px;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Right-align the search button */
+    flex: 1;
+}
+
+.search-field {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: var(--md3-surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px 8px;
+    transition: all 0.3s ease;
+}
+
+body.dark .search-field {
+    background: var(--md3-surface);
+    border: 1px solid var(--border);
+}
+
+.search-field input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.875rem;
+    color: var(--md3-on-surface);
+    outline: none;
+    padding: 4px 8px;
+}
+
+body.dark .search-field input {
+    color: var(--md3-on-surface);
+}
+
+.search-field input::placeholder {
+    color: var(--md3-on-surface-variant);
+}
+
+body.dark .search-field input::placeholder {
+    color: var(--md3-on-surface-variant);
+}
+
+@media (min-width: 600px) {
+    .hamburger-menu {
+        top: 56px;
+    }
+
+    .search-field input {
+        font-size: 1rem;
+    }
+}

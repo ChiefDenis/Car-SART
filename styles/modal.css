@@ -1,0 +1,151 @@
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    box-shadow: var(--shadow);
+}
+
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    color: var(--text);
+}
+
+.close-btn:hover {
+    background: var(--border);
+}
+
+.form-container {
+    margin-top: 16px;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.material-input {
+    width: 100%;
+    padding: 8px 0;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.material-input:focus {
+    border-bottom: 2px solid var(--primary);
+}
+
+.material-input:valid:not(:placeholder-shown) + label,
+.material-input:focus + label {
+    top: -20px;
+    font-size: 0.75rem;
+    color: var(--primary);
+}
+
+.material-input + label {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.cancel-btn {
+    background: transparent;
+    color: var(--text);
+}
+
+.cancel-btn:hover {
+    background: var(--border);
+}
+
+.radio-group {
+    display: flex;
+    gap: 16px;
+    margin: 16px 0;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--text);
+}
+
+input[type="radio"] {
+    accent-color: var(--primary);
+}
+
+.service-detail-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+}
+
+.service-detail-list li {
+    padding: 8px 0;
+    font-size: 0.875rem;
+    color: var(--text);
+}
+
+.service-detail-list li strong {
+    color: var(--text-secondary);
+    margin-right: 8px;
+}
+
+@media (min-width: 600px) {
+    .modal-content {
+        width: 80%;
+    }
+
+    .material-input, .material-input + label {
+        font-size: 1.125rem;
+    }
+
+    .material-input:valid:not(:placeholder-shown) + label,
+    .material-input:focus + label {
+        font-size: 0.875rem;
+    }
+
+    .radio-group label {
+        font-size: 1rem;
+    }
+
+    .service-detail-list li {
+        font-size: 1rem;
+    }
+}

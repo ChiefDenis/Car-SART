@@ -1,0 +1,42 @@
+.info-strip {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.info-strip span {
+    font-size: 1rem;
+    color: var(--text);
+}
+
+.info-strip strong {
+    color: var(--text-secondary);
+}
+
+.edit-info-btn {
+    background: none;
+    border: none;
+    color: var(--amber-btn);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1.5rem;
+}
+
+.edit-info-btn:hover {
+    color: var(--amber-btn-dark);
+}
+
+@media (min-width: 600px) {
+    .info-strip {
+        flex-wrap: nowrap;
+    }
+}

@@ -1,0 +1,174 @@
+.vehicle-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* MD3 spacing between list items */
+    margin-top: 16px;
+}
+
+.vehicle-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: transparent; /* Inherit from parent .card (surface-container-low) */
+    padding: 16px; /* MD3 padding for list items */
+    min-height: 48px; /* MD3 minimum touch target size */
+    border-radius: 8px; /* Subtle rounding for interactive items */
+    cursor: pointer;
+    transition: background-color 0.2s ease; /* For state layers */
+}
+
+.vehicle-card:hover {
+    background-color: rgba(var(--md-sys-color-on-surface, #1c1b1f), 0.08); /* MD3 state layer for hover */
+}
+
+body.dark .vehicle-card:hover {
+    background-color: rgba(var(--md-sys-color-on-surface-dark, #e7e1e8), 0.08);
+}
+
+.vehicle-card:focus {
+    outline: none;
+    background-color: rgba(var(--md-sys-color-on-surface, #1c1b1f), 0.12); /* MD3 state layer for focus */
+}
+
+body.dark .vehicle-card:focus {
+    background-color: rgba(var(--md-sys-color-on-surface-dark, #e7e1e8), 0.12);
+}
+
+.vehicle-card p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px; /* MD3 body-large */
+    font-weight: 400; /* MD3 regular weight */
+    line-height: 24px;
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+    margin: 0; /* Remove default margin */
+}
+
+body.dark .vehicle-card p {
+    color: var(--md-sys-color-on-surface-dark, #e7e1e8);
+}
+
+.vehicle-card .notes {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px; /* MD3 body-medium */
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+}
+
+body.dark .vehicle-card .notes {
+    color: var(--md-sys-color-on-surface-variant-dark, #cac4d0);
+}
+
+.vehicle-btn {
+    background: none;
+    border: none;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    cursor: pointer;
+    padding: 8px; /* Increased padding for 32dp touch target */
+    font-size: 24px; /* MD3 icon size */
+    border-radius: 50%; /* Circular touch target */
+    transition: background-color 0.2s ease;
+}
+
+body.dark .vehicle-btn {
+    color: var(--md-sys-color-on-surface-variant-dark, #cac4d0);
+}
+
+.vehicle-btn.edit {
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+}
+
+.vehicle-btn.delete {
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+}
+
+.vehicle-btn:hover {
+    background-color: rgba(var(--md-sys-color-primary, #6750a4), 0.08); /* MD3 state layer for hover */
+}
+
+body.dark .vehicle-btn:hover {
+    background-color: rgba(var(--md-sys-color-primary-dark, #d0bcff), 0.08);
+}
+
+.vehicle-btn:focus {
+    outline: none;
+    background-color: rgba(var(--md-sys-color-primary, #6750a4), 0.12); /* MD3 state layer for focus */
+}
+
+body.dark .vehicle-btn:focus {
+    background-color: rgba(var(--md-sys-color-primary-dark, #d0bcff), 0.12);
+}
+
+.vehicle-btn.edit:hover,
+.vehicle-btn.delete:hover {
+    background-color: rgba(var(--md-sys-color-primary, #6750a4), 0.08);
+}
+
+body.dark .vehicle-btn.edit:hover,
+body.dark .vehicle-btn.delete:hover {
+    background-color: rgba(var(--md-sys-color-primary-dark, #d0bcff), 0.08);
+}
+
+.no-vehicle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px; /* MD3 body-large */
+    font-weight: 400;
+    line-height: 24px;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    text-align: center;
+    margin-top: 16px;
+}
+
+body.dark .no-vehicle {
+    color: var(--md-sys-color-on-surface-variant-dark, #cac4d0);
+}
+
+.fab {
+    position: fixed;
+    bottom: 24px; /* MD3: 24dp from bottom */
+    right: 24px; /* MD3: 24dp from right */
+    background-color: var(--md-sys-color-primary, #6750a4);
+    color: var(--md-sys-color-on-primary, #ffffff);
+    border-radius: 16px; /* MD3 FAB corner radius */
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1); /* MD3 FAB elevation */
+    z-index: 90;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+body.dark .fab {
+    background-color: var(--md-sys-color-primary-dark, #d0bcff);
+    color: var(--md-sys-color-on-primary-dark, #381e72);
+}
+
+.fab:hover {
+    background-color: var(--md-sys-color-primary, #6750a4);
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15); /* MD3 FAB elevated on hover */
+    transform: scale(1.1);
+}
+
+body.dark .fab:hover {
+    background-color: var(--md-sys-color-primary-dark, #d0bcff);
+}
+
+@media (min-width: 600px) {
+    .vehicle-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .vehicle-card {
+        flex: 1 1 calc(50% - 16px);
+    }
+}
+
+@media (min-width: 960px) {
+    .vehicle-card {
+        flex: 1 1 calc(33.33% - 16px);
+    }
+}

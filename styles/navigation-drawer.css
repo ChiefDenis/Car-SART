@@ -1,0 +1,156 @@
+/* Define MD3 color tokens with fallbacks */
+:root {
+    /* Light mode colors */
+    --md-sys-color-surface: #fffbff;
+    --md-sys-color-surface-container-highest: #e6e0e9;
+    --md-sys-color-on-surface: #1c1b1f;
+    --md-sys-color-on-surface-variant: #49454f;
+    --md-sys-color-outline: #79747e;
+    --md-sys-color-primary: #6750a4;
+    --md-sys-color-scrim: #000000;
+
+    /* Dark mode colors */
+    --md-sys-color-surface-dark: #141218;
+    --md-sys-color-surface-container-highest-dark: #36343b;
+    --md-sys-color-on-surface-dark: #e7e1e8;
+    --md-sys-color-on-surface-variant-dark: #cac4d0;
+    --md-sys-color-outline-dark: #938f99;
+    --md-sys-color-primary-dark: #d0bcff;
+}
+
+/* Scrim (overlay) */
+.scrim {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--md-sys-color-scrim, #000000);
+    opacity: 0.32; /* MD3 scrim opacity */
+    z-index: 99;
+}
+
+/* Navigation Drawer */
+.navigation-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80%;
+    max-width: 360px; /* MD3 recommended max width */
+    height: 100%;
+    background-color: var(--md-sys-color-surface, #fffbff);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Elevation 1dp */
+}
+
+/* Show class for animation */
+.navigation-drawer.show {
+    transform: translateX(0);
+}
+
+/* Dark mode support */
+body.dark .navigation-drawer {
+    background-color: var(--md-sys-color-surface-dark, #141218);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Slightly stronger shadow in dark mode */
+}
+
+/* Drawer Header */
+.navigation-drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 16px 16px 28px; /* MD3: 28dp leading padding for alignment with items */
+    border-bottom: 1px solid var(--md-sys-color-outline, #79747e);
+}
+
+body.dark .navigation-drawer-header {
+    border-bottom-color: var(--md-sys-color-outline-dark, #938f99);
+}
+
+.navigation-drawer-header h3 {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    font-size: 22px; /* MD3 title-large */
+    font-weight: 500;
+    line-height: 28px;
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+}
+
+body.dark .navigation-drawer-header h3 {
+    color: var(--md-sys-color-on-surface-dark, #e7e1e8);
+}
+
+/* Drawer Items Container */
+.navigation-drawer-items {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Navigation Item */
+.navigation-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 16px 0 28px; /* MD3: 28dp leading padding for alignment */
+    height: 56px; /* MD3 recommended height */
+    background: none;
+    border: none;
+    text-align: left;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px; /* MD3 label-large */
+    font-weight: 500;
+    line-height: 20px;
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+    cursor: pointer;
+    position: relative; /* For state layer */
+    transition: background-color 0.2s ease;
+}
+
+body.dark .navigation-item {
+    color: var(--md-sys-color-on-surface-dark, #e7e1e8);
+}
+
+/* Icon and Label */
+.navigation-item .material-icons {
+    margin-right: 12px; /* MD3: 12dp between icon and label */
+    font-size: 24px; /* MD3 icon size */
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+}
+
+body.dark .navigation-item .material-icons {
+    color: var(--md-sys-color-on-surface-variant-dark, #cac4d0);
+}
+
+.navigation-label {
+    flex: 1;
+}
+
+/* State Layers (Hover, Focus, Pressed) */
+.navigation-item:hover {
+    background-color: rgba(var(--md-sys-color-primary, #6750a4), 0.08); /* State layer with primary color at 8% opacity */
+}
+
+body.dark .navigation-item:hover {
+    background-color: rgba(var(--md-sys-color-primary-dark, #d0bcff), 0.08);
+}
+
+.navigation-item:focus {
+    outline: none;
+    background-color: rgba(var(--md-sys-color-primary, #6750a4), 0.12); /* State layer at 12% opacity */
+}
+
+body.dark .navigation-item:focus {
+    background-color: rgba(var(--md-sys-color-primary-dark, #d0bcff), 0.12);
+}
+
+.navigation-item:active {
+    background-color: rgba(var(--md-sys-color-primary, #6750a4), 0.16); /* State layer at 16% opacity */
+}
+
+body.dark .navigation-item:active {
+    background-color: rgba(var(--md-sys-color-primary-dark, #d0bcff), 0.16);
+}

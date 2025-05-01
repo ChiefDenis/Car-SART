@@ -6,21 +6,46 @@
     <title>Car Service Tracker</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/global.css">
+    <link rel="stylesheet" href="styles/top-bar.css">
+    <link rel="stylesheet" href="styles/vehicle-list.css">
+    <link rel="stylesheet" href="styles/services.css">
+    <link rel="stylesheet" href="styles/info-strip.css">
+    <link rel="stylesheet" href="styles/modal.css">
+    <link rel="stylesheet" href="styles/snackbar.css">
+    <link rel="stylesheet" href="styles/navigation-drawer.css">
 </head>
 <body>
     <div class="top-bar">
         <div class="menu-container">
-            <button class="material-button icon-button menu-button" onclick="toggleHamburgerMenu()">
+            <button class="material-button icon-button menu-button" onclick="toggleHamburgerMenu()" aria-label="Open navigation menu">
                 <span class="material-icons">menu</span>
             </button>
-            <div id="hamburgerMenu" class="hamburger-menu" style="display: none;">
-                <button class="menu-item" onclick="backupData()">Backup Data</button>
-                <button class="menu-item" onclick="document.getElementById('restoreInput').click()">Restore Data</button>
-                <button class="menu-item" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+            <div id="hamburgerMenu" class="navigation-drawer" style="display: none;">
+                <div class="navigation-drawer-header">
+                    <h3>Menu</h3>
+                    <button class="material-button icon-btn" onclick="toggleHamburgerMenu()" aria-label="Close navigation menu">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="navigation-drawer-items">
+                    <button class="navigation-item" onclick="backupData()">
+                        <span class="material-icons">file_download</span>
+                        <span class="navigation-label">Backup Data</span>
+                    </button>
+                    <button class="navigation-item" onclick="document.getElementById('restoreInput').click()">
+                        <span class="material-icons">file_upload</span>
+                        <span class="navigation-label">Restore Data</span>
+                    </button>
+                    <button class="navigation-item" onclick="toggleDarkMode()">
+                        <span class="material-icons">dark_mode</span>
+                        <span class="navigation-label">Toggle Dark Mode</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+    <div id="scrim" class="scrim" style="display: none;" onclick="toggleHamburgerMenu()"></div>
     <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="restoreData(event)">
 
     <!-- Main Page -->
@@ -37,9 +62,22 @@
 
     <!-- Detail Page -->
     <div id="detailPage" style="display: none;">
-        <button class="material-button icon-button" onclick="navigateTo('..')">
-            <span class="material-icons">arrow_back</span>
-        </button>
+        <div class="detail-top-bar">
+            <button class="material-button icon-button back-button" onclick="navigateTo('..')" aria-label="Go back">
+                <span class="material-icons">arrow_back</span>
+            </button>
+            <div class="search-container">
+                <button class="material-button icon-button search-button" onclick="toggleSearch()" aria-label="Toggle search">
+                    <span class="material-icons">search</span>
+                </button>
+                <div class="search-field" style="display: none;">
+                    <input type="text" id="servicesSearch" placeholder="Search services..." aria-label="Search services">
+                    <button class="material-button icon-button clear-search" onclick="clearSearch()" aria-label="Clear search">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+            </div>
+        </div>
         <h1 id="detailVehicleName"></h1>
         <p id="detailVehicleNotes" class="notes"></p>
 
@@ -60,28 +98,11 @@
         <!-- Services -->
         <div class="card">
             <h2>Services</h2>
-            <button class="material-button icon-button" onclick="exportToCSV('detailServicesTable', 'services.csv')">
-                <span class="material-icons">download</span> Export
-            </button>
-            <div class="table-container">
-                <table id="detailServicesTable">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th>Date</th>
-                            <th>Mileage</th>
-                            <th>Priority</th>
-                            <th>Cost</th>
-                            <th>Shop</th>
-                            <th>Receipt #</th>
-                            <th>Notes</th>
-                            <th>Is Due</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="detailServicesBody"></tbody>
-                </table>
+            <div class="services-list" id="detailServicesList">
+                <div id="detailServicesBody"></div>
+                <button class="material-button export-btn" onclick="exportToCSV('detailServicesList', 'services.csv')">
+                    <span class="material-icons">download</span> Export to CSV
+                </button>
             </div>
         </div>
     </div>
@@ -163,12 +184,25 @@
             </button>
             <h2>Service Details</h2>
             <ul id="serviceDetailList" class="service-detail-list"></ul>
+            <div class="modal-actions">
+                <button class="material-button edit-btn" id="serviceDetailEdit" style="display: none;" onclick="editServiceFromModal()">
+                    <span class="material-icons">edit</span> Edit
+                </button>
+                <button class="material-button delete-btn" id="serviceDetailDelete" style="display: none;" onclick="deleteServiceFromModal()">
+                    <span class="material-icons">delete</span> Delete
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Snackbar -->
     <div id="snackbar"></div>
 
-    <script src="script.js"></script>
+    <script src="app/core.js"></script>
+    <script src="app/data.js"></script>
+    <script src="app/vehicle-list.js"></script>
+    <script src="app/services.js"></script>
+    <script src="app/current-info.js"></script>
+    <script src="app/modals.js"></script>
 </body>
 </html>
