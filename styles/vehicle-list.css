@@ -1,3 +1,9 @@
+/* Define MD3 color tokens with fallbacks (if not defined elsewhere) */
+:root {
+    --md-sys-color-surface-container-low: #f7f2fa; /* Subtle tint for light mode */
+    --md-sys-color-surface-container-low-dark: #1c1a22; /* Subtle tint for dark mode */
+}
+
 .vehicle-list {
     display: flex;
     flex-direction: column;
@@ -9,7 +15,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: transparent; /* Inherit from parent .card (surface-container-low) */
     padding: 16px; /* MD3 padding for list items */
     min-height: 48px; /* MD3 minimum touch target size */
     border-radius: 8px; /* Subtle rounding for interactive items */
@@ -17,6 +22,24 @@
     transition: background-color 0.2s ease; /* For state layers */
 }
 
+/* Background alternation */
+.vehicle-card:nth-child(odd) {
+    background: var(--md-sys-color-surface-container-low, #f7f2fa);
+}
+
+.vehicle-card:nth-child(even) {
+    background: var(--md-sys-color-surface, #fffbff);
+}
+
+body.dark .vehicle-card:nth-child(odd) {
+    background: var(--md-sys-color-surface-container-low-dark, #1c1a22);
+}
+
+body.dark .vehicle-card:nth-child(even) {
+    background: var(--md-sys-color-surface-dark, #141218);
+}
+
+/* Hover and focus states (layer on top of alternating backgrounds) */
 .vehicle-card:hover {
     background-color: rgba(var(--md-sys-color-on-surface, #1c1b1f), 0.08); /* MD3 state layer for hover */
 }
