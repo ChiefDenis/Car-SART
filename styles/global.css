@@ -59,6 +59,7 @@ body {
     font-size: 1rem;
     line-height: 1.5;
     transition: background-color 0.3s ease, color 0.3s ease;
+    padding-bottom: 80px; /* Already set for bottom nav bar */
 }
 
 h1 {
@@ -85,7 +86,7 @@ h2 {
     max-width: 960px;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 88px; /* Add space for floating FABs */
+    margin-bottom: 104px; /* Adjusted to account for action-btn (48px) + gap (16px) + nav bar (80px) */
 }
 
 body.dark .card {
@@ -93,9 +94,9 @@ body.dark .card {
 }
 
 .card h2 {
-    margin: 0 0 16px 0; /* Adjusted spacing below title */
+    margin: 0 0 16px 0;
     font-family: 'Roboto', sans-serif;
-    font-size: 16px; /* MD3 title-medium */
+    font-size: 16px;
     font-weight: 500;
     line-height: 24px;
     color: var(--md-sys-color-on-surface, #1c1b1f);
@@ -167,6 +168,101 @@ body.dark .card h2 {
     margin: 0;
 }
 
+/* Action Buttons (replacing FABs) */
+.action-btn {
+    position: fixed;
+    bottom: 96px; /* 80px (nav bar height) + 16px gap */
+    left: 16px;
+    background-color: var(--md-sys-color-primary, #6750a4);
+    color: var(--md-sys-color-on-primary, #ffffff);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    z-index: 900; /* Below return-to-top (1000) but above content */
+}
+
+body.dark .action-btn {
+    background-color: var(--md-sys-color-primary, #d0bcff);
+    color: var(--md-sys-color-on-primary, #381e72);
+}
+
+.action-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+body.dark .action-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.action-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.3);
+}
+
+body.dark .action-btn:focus {
+    box-shadow: 0 0 0 3px rgba(208, 188, 255, 0.3);
+}
+
+/*.service-action-btn {
+    Inherits from .action-btn, no additional styles needed unless specific adjustments are required 
+}*/
+
+/* Return to Top button styles */
+#return-to-top {
+    position: fixed;
+    bottom: 160px; /* Adjusted: 80px (nav bar) + 16px gap + 48px (action-btn) + 16px gap */
+    right: 20px;
+    background-color: var(--md-sys-color-primary, #6750a4);
+    color: var(--md-sys-color-on-primary, #ffffff);
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    box-shadow: var(--shadow);
+    font-family: 'Material Icons';
+    font-size: 24px;
+    z-index: 1000;
+}
+
+body.dark #return-to-top {
+    background-color: var(--md-sys-color-primary, #d0bcff);
+    color: var(--md-sys-color-on-primary, #381e72);
+}
+
+#return-to-top.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+#return-to-top:hover {
+    background-color: var(--primary-dark);
+}
+
+body.dark #return-to-top:hover {
+    background-color: var(--primary-dark);
+}
+
+#return-to-top:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.3);
+}
+
+body.dark #return-to-top:focus {
+    box-shadow: 0 0 0 3px rgba(208, 188, 255, 0.3);
+}
+
 @media (min-width: 600px) {
     h1 {
         font-size: 2.25rem;
@@ -178,5 +274,9 @@ body.dark .card h2 {
 
     .card {
         padding: 24px;
+    }
+
+    .action-btn {
+        left: calc(50% - 480px + 16px); /* Center for max-width 960px cards */
     }
 }

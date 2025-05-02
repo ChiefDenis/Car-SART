@@ -141,7 +141,7 @@ body.dark .service-item.priority-medium {
 }
 
 .service-icon.pending.medium {
-    color: var(--md3-on-surface);
+    color: var(--md3-on-warning-container);
 }
 
 .service-icon.pending.low {

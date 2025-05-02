@@ -5,12 +5,12 @@
     padding: 12px 24px;
     border-radius: 8px;
     position: fixed;
-    bottom: 16px;
+    bottom: 96px; /* Adjusted: 80px (nav bar height) + 16px gap */
     left: 50%;
     transform: translateX(-50%);
     box-shadow: var(--shadow);
     font-size: 0.875rem;
-    z-index: 1000;
+    z-index: 1100; /* Above nav bar (1000) and action buttons (900) */
 }
 
 #snackbar.show {
@@ -20,10 +20,10 @@
 
 @keyframes slideIn {
     from { bottom: -40px; opacity: 0; }
-    to { bottom: 16px; opacity: 1; }
+    to { bottom: 96px; opacity: 1; } /* Adjusted to match new bottom position */
 }
 
 @keyframes slideOut {
-    from { bottom: 16px; opacity: 1; }
+    from { bottom: 96px; opacity: 1; } /* Adjusted to match new bottom position */
     to { bottom: -40px; opacity: 0; }
 }

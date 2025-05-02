@@ -1,4 +1,3 @@
-// Generate a simple UUID for vehicle IDs
 function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -6,7 +5,6 @@ function generateUUID() {
     });
 }
 
-// Function to show snackbar
 function showSnackbar(message) {
     try {
         const snackbar = document.getElementById('snackbar');
@@ -22,18 +20,101 @@ function showSnackbar(message) {
     }
 }
 
-// Function to toggle dark mode
 function toggleDarkMode() {
     try {
         document.body.classList.toggle('dark');
         localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-        toggleHamburgerMenu(); // Close menu after action
+        updateThemeDropdown();
     } catch (e) {
         console.error('Error in toggleDarkMode:', e);
     }
 }
 
-// Function to toggle hamburger menu
+function updateTheme(theme) {
+    try {
+        document.body.classList.remove('dark');
+        if (theme === 'dark') {
+            document.body.classList.add('dark');
+        }
+        localStorage.setItem('theme', theme);
+        updateThemeDropdown();
+    } catch (e) {
+        console.error('Error in updateTheme:', e);
+    }
+}
+
+function updateThemeDropdown() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.value = localStorage.getItem('theme') || 'light';
+    }
+}
+
+function updateUnitSystem(unitSystem) {
+    try {
+        localStorage.setItem('unitSystem', unitSystem);
+        updateUnitSystemDropdown();
+        renderPage(); // Re-render to update mileage displays
+    } catch (e) {
+        console.error('Error in updateUnitSystem:', e);
+    }
+}
+
+function updateUnitSystemDropdown() {
+    const unitSystemSelect = document.getElementById('unitSystem');
+    if (unitSystemSelect) {
+        unitSystemSelect.value = localStorage.getItem('unitSystem') || 'metric';
+    }
+}
+
+function updateDefaultCurrency(currency) {
+    try {
+        localStorage.setItem('defaultCurrency', currency);
+        updateDefaultCurrencyDropdown();
+        renderPage(); // Re-render to update currency displays
+    } catch (e) {
+        console.error('Error in updateDefaultCurrency:', e);
+    }
+}
+
+function updateDefaultCurrencyDropdown() {
+    const currencySelect = document.getElementById('defaultCurrency');
+    if (currencySelect) {
+        const savedCurrency = localStorage.getItem('defaultCurrency') || '';
+        // Check if the saved currency exists in the dropdown; if not, fallback to blank
+        const optionExists = Array.from(currencySelect.options).some(option => option.value === savedCurrency);
+        currencySelect.value = optionExists ? savedCurrency : '';
+    }
+}
+
+function convertMileage(value, fromUnit, toUnit) {
+    if (fromUnit === toUnit) return value;
+    const kmToMiles = 0.621371; // 1 km = 0.621371 miles
+    if (fromUnit === 'metric' && (toUnit === 'uk-imperial' || toUnit === 'us-imperial')) {
+        return value * kmToMiles;
+    } else if ((fromUnit === 'uk-imperial' || fromUnit === 'us-imperial') && toUnit === 'metric') {
+        return value / kmToMiles;
+    }
+    return value; // No conversion between uk-imperial and us-imperial (both use miles)
+}
+
+function getMileageUnit() {
+    const unitSystem = localStorage.getItem('unitSystem') || 'metric';
+    return unitSystem === 'metric' ? 'km' : 'mi';
+}
+
+function formatMileage(value) {
+    const unitSystem = localStorage.getItem('unitSystem') || 'metric';
+    const convertedValue = convertMileage(value, 'metric', unitSystem); // Data stored in metric (km)
+    return `${Math.round(convertedValue)} ${getMileageUnit()}`;
+}
+
+function formatCurrency(value) {
+    const currency = localStorage.getItem('defaultCurrency') || '';
+    if (!currency) return `${value}`; // Custom/blank currency
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(value);
+}
+
 function toggleHamburgerMenu() {
     try {
         const menu = document.getElementById('hamburgerMenu');
@@ -47,13 +128,11 @@ function toggleHamburgerMenu() {
     }
 }
 
-// Function to backup localStorage data
 async function backupData() {
     try {
         const data = JSON.stringify(localStorage);
         const blob = new Blob([data], { type: 'application/json' });
 
-        // Generate filename with date and time (e.g., CSART-backup-2025-04-26-12-57-00.json)
         const now = new Date();
         const timestamp = now.getFullYear() + '-' +
                          String(now.getMonth() + 1).padStart(2, '0') + '-' +
@@ -63,11 +142,9 @@ async function backupData() {
                          String(now.getSeconds()).padStart(2, '0');
         const filename = `CSART-backup-${timestamp}.json`;
 
-        // Check if running on desktop (basic heuristic: screen width > 600px)
         const isDesktop = window.innerWidth > 600;
 
         if (isDesktop && window.showSaveFilePicker) {
-            // Use File System Access API for desktop save dialog
             const fileHandle = await window.showSaveFilePicker({
                 suggestedName: filename,
                 types: [{
@@ -79,7 +156,6 @@ async function backupData() {
             await writable.write(blob);
             await writable.close();
         } else {
-            // Fallback for mobile or unsupported browsers
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -89,14 +165,13 @@ async function backupData() {
         }
 
         showSnackbar('Data backed up');
-        toggleHamburgerMenu(); // Close menu after action
+        toggleHamburgerMenu();
     } catch (e) {
         console.error('Error in backupData:', e);
         showSnackbar('Backup failed');
     }
 }
 
-// Function to restore localStorage data
 function restoreData(event) {
     try {
         const file = event.target.files[0];
@@ -108,21 +183,17 @@ function restoreData(event) {
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                // Validate data
                 if (!data.vehicles || !data.selectedVehicleId || !data.theme) {
                     throw new Error('Invalid backup file: missing required keys');
                 }
-                // Clear existing localStorage
                 localStorage.clear();
-                // Restore new data
                 Object.entries(data).forEach(([key, value]) => localStorage.setItem(key, value));
-                // Repair and refresh
                 vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
                 selectedVehicleId = localStorage.getItem('selectedVehicleId') || null;
                 repairVehiclesData();
                 renderPage();
                 showSnackbar('Data restored');
-                toggleHamburgerMenu(); // Close menu after action
+                toggleHamburgerMenu();
             } catch (err) {
                 console.error('Error restoring data:', err);
                 showSnackbar('Invalid backup file');
@@ -135,7 +206,6 @@ function restoreData(event) {
     }
 }
 
-// Client-side routing
 function navigateTo(path) {
     try {
         console.log('Navigating to:', path);
@@ -144,18 +214,17 @@ function navigateTo(path) {
             showSnackbar('Cannot navigate: Invalid vehicle ID');
             return;
         }
-        // Check if running on file:// protocol
         if (window.location.protocol === 'file:') {
             console.warn('Using file:// fallback navigation (history.pushState not supported)');
-            // Update selectedVehicleId and render directly
             if (path.startsWith('/vehicle/')) {
                 selectedVehicleId = path.split('/vehicle/')[1];
+            } else if (path === '/settings') {
+                selectedVehicleId = null;
             } else {
                 selectedVehicleId = null;
             }
             renderPage();
         } else {
-            // Normal navigation for http:// or https://
             history.pushState({}, '', path);
             renderPage();
         }
@@ -175,12 +244,12 @@ function renderPage() {
         console.log('Rendering page for path:', path);
         const mainPage = document.getElementById('mainPage');
         const detailPage = document.getElementById('detailPage');
-        if (!mainPage || !detailPage) {
-            console.error('Main or detail page elements not found');
+        const settingsPage = document.getElementById('settingsPage');
+        if (!mainPage || !detailPage || !settingsPage) {
+            console.error('Page elements not found');
             return;
         }
 
-        // Normalize path for /carsart
         if (path.startsWith('/carsart')) {
             path = path.replace('/carsart', '');
         }
@@ -188,29 +257,90 @@ function renderPage() {
         if (path === '/' || path === '') {
             mainPage.style.display = 'block';
             detailPage.style.display = 'none';
+            settingsPage.style.display = 'none';
             renderVehicleList();
         } else if (path.startsWith('/vehicle/')) {
             selectedVehicleId = path.split('/vehicle/')[1];
             mainPage.style.display = 'none';
             detailPage.style.display = 'block';
+            settingsPage.style.display = 'none';
             renderSelectedVehicle();
+        } else if (path === '/settings') {
+            mainPage.style.display = 'none';
+            detailPage.style.display = 'none';
+            settingsPage.style.display = 'block';
+            updateThemeDropdown();
+            updateUnitSystemDropdown();
+            updateDefaultCurrencyDropdown();
         }
     } catch (e) {
         console.error('Error in renderPage:', e);
     }
 }
 
-// Initial setup
+// Bottom Navigation Functions
+function updateActiveNavItem(target) {
+    const navItems = document.querySelectorAll('.mdc-bottom-navigation__item');
+    navItems.forEach(item => item.classList.remove('mdc-bottom-navigation__item--active'));
+    target.classList.add('mdc-bottom-navigation__item--active');
+}
+
+function navigateToMainPage() {
+    try {
+        const mainPage = document.getElementById('mainPage');
+        const detailPage = document.getElementById('detailPage');
+        const settingsPage = document.getElementById('settingsPage');
+        mainPage.style.display = 'block';
+        detailPage.style.display = 'none';
+        settingsPage.style.display = 'none';
+        renderVehicleList();
+        updateActiveNavItem(document.querySelector('.mdc-bottom-navigation__item[aria-label="Navigate to Home"]'));
+        navigateTo('/');
+    } catch (e) {
+        console.error('Error in navigateToMainPage:', e);
+        showSnackbar('Navigation failed');
+    }
+}
+
+function navigateToShop() {
+    try {
+        showSnackbar('Shop feature coming soon!');
+        updateActiveNavItem(document.querySelector('.mdc-bottom-navigation__item[aria-label="Navigate to Shop"]'));
+    } catch (e) {
+        console.error('Error in navigateToShop:', e);
+        showSnackbar('Navigation failed');
+    }
+}
+
+function navigateToNotifications() {
+    try {
+        showSnackbar('Notifications feature coming soon!');
+        updateActiveNavItem(document.querySelector('.mdc-bottom-navigation__item[aria-label="Navigate to Notifications"]'));
+    } catch (e) {
+        console.error('Error in navigateToNotifications:', e);
+        showSnackbar('Navigation failed');
+    }
+}
+
+function navigateToSettings() {
+    try {
+        updateActiveNavItem(document.querySelector('.mdc-bottom-navigation__item[aria-label="Navigate to Settings"]'));
+        navigateTo('/settings');
+        toggleHamburgerMenu(); // Close the hamburger menu after action
+    } catch (e) {
+        console.error('Error in navigateToSettings:', e);
+        showSnackbar('Navigation failed');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded');
     if (window.location.protocol === 'file:') {
         console.warn('Running on file:// protocol. Navigation may be limited due to browser security restrictions. For full functionality, serve the app using a local server (e.g., `python -m http.server 8000` or `npx serve`).');
     }
-    // Load theme preference
     if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark');
     }
-    // Close hamburger menu when clicking outside
     document.addEventListener('click', (e) => {
         const menu = document.getElementById('hamburgerMenu');
         const menuButton = document.querySelector('.menu-button');
@@ -220,12 +350,32 @@ document.addEventListener('DOMContentLoaded', () => {
             scrim.classList.remove('show');
         }
     });
-    // Close service detail modal with Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeServiceDetailModal();
         }
     });
+    const returnToTopButton = document.getElementById('return-to-top');
+    if (returnToTopButton) {
+        window.addEventListener('scroll', () => {
+            const scrollPosition = window.scrollY;
+            const pageHeight = window.innerHeight;
+            if (scrollPosition > pageHeight / 2) {
+                returnToTopButton.classList.add('show');
+            } else {
+                returnToTopButton.classList.remove('show');
+            }
+        });
+
+        returnToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    } else {
+        console.warn('Return to Top button not found');
+    }
     window.addEventListener('popstate', () => {
         console.log('Popstate event triggered');
         renderPage();

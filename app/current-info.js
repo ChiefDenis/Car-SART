@@ -20,7 +20,7 @@ async function renderSelectedVehicle() {
             document.getElementById('detailVehicleName').textContent = vehicle.name;
             document.getElementById('detailVehicleNotes').textContent = vehicle.notes || '';
             document.getElementById('currentDateDisplay').textContent = vehicle.currentInfo.date;
-            document.getElementById('currentMileageDisplay').textContent = vehicle.currentInfo.mileage;
+            document.getElementById('currentMileageDisplay').textContent = formatMileage(vehicle.currentInfo.mileage);
             renderServicesList();
         } else {
             console.error('No vehicle found for ID:', selectedVehicleId);
@@ -29,6 +29,21 @@ async function renderSelectedVehicle() {
         }
     } catch (e) {
         console.error('Error in renderSelectedVehicle:', e);
+    }
+}
+
+function renderCurrentInfo(vehicle) {
+    try {
+        const currentDateDisplay = document.getElementById('currentDateDisplay');
+        const currentMileageDisplay = document.getElementById('currentMileageDisplay');
+        if (!currentDateDisplay || !currentMileageDisplay) {
+            console.error('Current info elements not found');
+            return;
+        }
+        currentDateDisplay.textContent = vehicle.currentDate || 'Not set';
+        currentMileageDisplay.textContent = vehicle.currentMileage ? formatMileage(vehicle.currentMileage) : 'Not set';
+    } catch (e) {
+        console.error('Error in renderCurrentInfo:', e);
     }
 }
 
@@ -43,7 +58,12 @@ function openCurrentInfoModal() {
         }
 
         document.getElementById('modalCurrentDate').value = vehicle.currentInfo.date;
-        document.getElementById('modalCurrentMileage').value = vehicle.currentInfo.mileage;
+        const unitSystem = localStorage.getItem('unitSystem') || 'metric';
+        const convertedMileage = vehicle.currentInfo.mileage
+            ? convertMileage(vehicle.currentInfo.mileage, 'metric', unitSystem)
+            : '';
+        document.getElementById('modalCurrentMileage').value = convertedMileage || '';
+        document.getElementById('modalCurrentMileage').placeholder = getMileageUnit();
         modal.style.display = 'flex';
     } catch (e) {
         console.error('Error in openCurrentInfoModal:', e);
@@ -67,12 +87,16 @@ function submitCurrentInfo() {
     try {
         const vehicle = getSelectedVehicle();
         if (vehicle) {
-            vehicle.currentInfo.date = document.getElementById('modalCurrentDate').value;
-            vehicle.currentInfo.mileage = parseInt(document.getElementById('modalCurrentMileage').value) || 0;
-            if (!vehicle.currentInfo.date) {
+            const date = document.getElementById('modalCurrentDate').value;
+            const mileageInput = document.getElementById('modalCurrentMileage').value;
+            if (!date) {
                 alert('Please enter a valid date.');
                 return;
             }
+            const unitSystem = localStorage.getItem('unitSystem') || 'metric';
+            const mileageValue = parseFloat(mileageInput) || 0;
+            vehicle.currentInfo.date = date;
+            vehicle.currentInfo.mileage = convertMileage(mileageValue, unitSystem, 'metric');
             saveData();
             renderSelectedVehicle();
             showSnackbar('Current information updated');

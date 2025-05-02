@@ -1,0 +1,89 @@
+/* MD3 Bottom Navigation Styles */
+.mdc-bottom-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--md-sys-color-surface-container-low, #f7f2fa);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 80px; /* MD3 recommended height */
+    box-shadow: var(--shadow);
+    z-index: 1000; /* Ensure it's above other elements */
+}
+
+body.dark .mdc-bottom-navigation {
+    background-color: var(--md-sys-color-surface-container-low, #1b1b1f);
+}
+
+.mdc-bottom-navigation__item {
+    background: none;
+    border: none;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 8px;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.1s ease;
+}
+
+body.dark .mdc-bottom-navigation__item {
+    color: var(--md-sys-color-on-surface-variant, #cac4d0);
+}
+
+.mdc-bottom-navigation__item--active {
+    color: var(--md-sys-color-primary, #6750a4);
+}
+
+body.dark .mdc-bottom-navigation__item--active {
+    color: var(--md-sys-color-primary, #d0bcff);
+}
+
+.mdc-bottom-navigation__item:hover {
+    color: var(--md-sys-color-primary, #6750a4);
+    transform: scale(1.05);
+}
+
+body.dark .mdc-bottom-navigation__item:hover {
+    color: var(--md-sys-color-primary, #d0bcff);
+}
+
+.mdc-bottom-navigation__item:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.3);
+}
+
+body.dark .mdc-bottom-navigation__item:focus {
+    box-shadow: 0 0 0 3px rgba(208, 188, 255, 0.3);
+}
+
+.mdc-bottom-navigation__item .material-icons {
+    font-size: 24px; /* MD3 icon size */
+    margin-bottom: 4px;
+}
+
+.mdc-bottom-navigation__label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px; /* MD3 label-medium */
+    font-weight: 500;
+    line-height: 16px;
+}
+
+/* Ensure content doesn't overlap the nav bar */
+body {
+    padding-bottom: 80px; /* Height of the bottom nav bar */
+}
+
+/* Non-mobile view: 2/3 width and centered */
+@media (min-width: 600px) {
+    .mdc-bottom-navigation {
+        width: 66.67%;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+    }
+}
