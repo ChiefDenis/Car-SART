@@ -19,6 +19,8 @@
     width: 90%;
     position: relative;
     box-shadow: var(--shadow);
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .close-btn {
@@ -127,6 +129,35 @@ input[type="radio"] {
     margin-right: 8px;
 }
 
+#vehicleSelectList.vehicle-list {
+    margin-top: 16px;
+    max-height: 50vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#vehicleSelectList .vehicle-select-item {
+    padding: 16px;
+    font-size: 1rem;
+    font-family: 'Roboto', sans-serif;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 4px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.2s ease;
+}
+
+#vehicleSelectList .vehicle-select-item:last-child {
+    border-bottom: none;
+}
+
+#vehicleSelectList .vehicle-select-item:hover {
+    background-color: var(--border);
+}
+
 @media (min-width: 600px) {
     .modal-content {
         width: 80%;
@@ -147,5 +178,10 @@ input[type="radio"] {
 
     .service-detail-list li {
         font-size: 1rem;
+    }
+
+    #vehicleSelectList .vehicle-select-item {
+        font-size: 1.125rem;
+        padding: 20px;
     }
 }

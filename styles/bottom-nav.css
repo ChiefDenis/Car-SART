@@ -68,7 +68,7 @@ body.dark .mdc-bottom-navigation__item:focus {
 
 .mdc-bottom-navigation__label {
     font-family: 'Roboto', sans-serif;
-    font-size: 12px; /* MD3 label-medium */
+    font-size: 11px; /* Slightly smaller for 5 tabs */
     font-weight: 500;
     line-height: 16px;
 }
@@ -85,5 +85,15 @@ body {
         left: 50%;
         right: auto;
         transform: translateX(-50%);
+    }
+}
+
+/* Adjust for 5 tabs on smaller screens */
+@media (max-width: 400px) {
+    .mdc-bottom-navigation__item {
+        padding: 4px;
+    }
+    .mdc-bottom-navigation__label {
+        font-size: 10px;
     }
 }

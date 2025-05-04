@@ -235,3 +235,58 @@ function submitService(type) {
         console.error('Error in submitService:', e);
     }
 }
+
+// Vehicle select modal functions
+function openVehicleSelectModal() {
+    try {
+        const modal = document.getElementById('vehicleSelectModal');
+        const vehicleList = document.getElementById('vehicleSelectList');
+        
+        if (!modal || !vehicleList) {
+            console.error('Vehicle select modal elements not found');
+            return;
+        }
+        
+        // Clear existing list
+        vehicleList.innerHTML = '';
+        
+        // Populate vehicle list
+        vehicles.forEach((vehicle) => {
+            const vehicleItem = document.createElement('div');
+            vehicleItem.className = 'vehicle-select-item';
+            vehicleItem.textContent = vehicle.name;
+            vehicleItem.onclick = () => selectVehicle(vehicle.id);
+            vehicleList.appendChild(vehicleItem);
+        });
+        
+        // Show modal
+        modal.style.display = 'flex';
+    } catch (e) {
+        console.error('Error in openVehicleSelectModal:', e);
+    }
+}
+
+function closeVehicleSelectModal() {
+    try {
+        const modal = document.getElementById('vehicleSelectModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    } catch (e) {
+        console.error('Error in closeVehicleSelectModal:', e);
+    }
+}
+
+function selectVehicle(id) {
+    try {
+        if (!id) {
+            showSnackbar('Invalid vehicle ID');
+            return;
+        }
+        closeVehicleSelectModal();
+        navigateTo(`/vehicle/${id}`);
+    } catch (e) {
+        console.error('Error in selectVehicle:', e);
+        showSnackbar('Failed to select vehicle');
+    }
+}

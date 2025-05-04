@@ -81,7 +81,6 @@ function updateDefaultCurrencyDropdown() {
     const currencySelect = document.getElementById('defaultCurrency');
     if (currencySelect) {
         const savedCurrency = localStorage.getItem('defaultCurrency') || '';
-        // Check if the saved currency exists in the dropdown; if not, fallback to blank
         const optionExists = Array.from(currencySelect.options).some(option => option.value === savedCurrency);
         currencySelect.value = optionExists ? savedCurrency : '';
     }
@@ -89,13 +88,13 @@ function updateDefaultCurrencyDropdown() {
 
 function convertMileage(value, fromUnit, toUnit) {
     if (fromUnit === toUnit) return value;
-    const kmToMiles = 0.621371; // 1 km = 0.621371 miles
+    const kmToMiles = 0.621371;
     if (fromUnit === 'metric' && (toUnit === 'uk-imperial' || toUnit === 'us-imperial')) {
         return value * kmToMiles;
     } else if ((fromUnit === 'uk-imperial' || fromUnit === 'us-imperial') && toUnit === 'metric') {
         return value / kmToMiles;
     }
-    return value; // No conversion between uk-imperial and us-imperial (both use miles)
+    return value;
 }
 
 function getMileageUnit() {
@@ -105,13 +104,13 @@ function getMileageUnit() {
 
 function formatMileage(value) {
     const unitSystem = localStorage.getItem('unitSystem') || 'metric';
-    const convertedValue = convertMileage(value, 'metric', unitSystem); // Data stored in metric (km)
+    const convertedValue = convertMileage(value, 'metric', unitSystem);
     return `${Math.round(convertedValue)} ${getMileageUnit()}`;
 }
 
 function formatCurrency(value) {
     const currency = localStorage.getItem('defaultCurrency') || '';
-    if (!currency) return `${value}`; // Custom/blank currency
+    if (!currency) return `${value}`;
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(value);
 }
 
@@ -132,7 +131,6 @@ async function backupData() {
     try {
         const data = JSON.stringify(localStorage);
         const blob = new Blob([data], { type: 'application/json' });
-
         const now = new Date();
         const timestamp = now.getFullYear() + '-' +
                          String(now.getMonth() + 1).padStart(2, '0') + '-' +
@@ -141,16 +139,11 @@ async function backupData() {
                          String(now.getMinutes()).padStart(2, '0') + '-' +
                          String(now.getSeconds()).padStart(2, '0');
         const filename = `CSART-backup-${timestamp}.json`;
-
         const isDesktop = window.innerWidth > 600;
-
         if (isDesktop && window.showSaveFilePicker) {
             const fileHandle = await window.showSaveFilePicker({
                 suggestedName: filename,
-                types: [{
-                    description: 'JSON Files',
-                    accept: { 'application/json': ['.json'] }
-                }]
+                types: [{ description: 'JSON Files', accept: { 'application/json': ['.json'] } }]
             });
             const writable = await fileHandle.createWritable();
             await writable.write(blob);
@@ -163,7 +156,6 @@ async function backupData() {
             a.click();
             URL.revokeObjectURL(url);
         }
-
         showSnackbar('Data backed up');
         toggleHamburgerMenu();
     } catch (e) {
@@ -218,8 +210,6 @@ function navigateTo(path) {
             console.warn('Using file:// fallback navigation (history.pushState not supported)');
             if (path.startsWith('/vehicle/')) {
                 selectedVehicleId = path.split('/vehicle/')[1];
-            } else if (path === '/settings') {
-                selectedVehicleId = null;
             } else {
                 selectedVehicleId = null;
             }
@@ -238,35 +228,63 @@ function navigateTo(path) {
     }
 }
 
+function goBack() {
+    try {
+        let path = window.location.pathname;
+        console.log('Going back from path:', path);
+        if (path.startsWith('/carsart')) {
+            path = path.replace('/carsart', '');
+        }
+        if (path.startsWith('/vehicle/')) {
+            navigateTo('/vehicles');
+        } else if (path === '/settings') {
+            navigateTo('/vehicles');
+        } else {
+            navigateTo('/vehicles'); // Fallback to vehicles page
+        }
+    } catch (e) {
+        console.error('Error in goBack:', e);
+        showSnackbar('Navigation failed');
+    }
+}
+
 function renderPage() {
     try {
         let path = window.location.pathname;
         console.log('Rendering page for path:', path);
         const mainPage = document.getElementById('mainPage');
+        const vehiclesPage = document.getElementById('vehiclesPage');
         const detailPage = document.getElementById('detailPage');
         const settingsPage = document.getElementById('settingsPage');
-        if (!mainPage || !detailPage || !settingsPage) {
+        if (!mainPage || !vehiclesPage || !detailPage || !settingsPage) {
             console.error('Page elements not found');
             return;
         }
-
         if (path.startsWith('/carsart')) {
             path = path.replace('/carsart', '');
         }
-
         if (path === '/' || path === '') {
             mainPage.style.display = 'block';
+            vehiclesPage.style.display = 'none';
+            detailPage.style.display = 'none';
+            settingsPage.style.display = 'none';
+            renderDashboard();
+        } else if (path === '/vehicles') {
+            mainPage.style.display = 'none';
+            vehiclesPage.style.display = 'block';
             detailPage.style.display = 'none';
             settingsPage.style.display = 'none';
             renderVehicleList();
         } else if (path.startsWith('/vehicle/')) {
             selectedVehicleId = path.split('/vehicle/')[1];
             mainPage.style.display = 'none';
+            vehiclesPage.style.display = 'none';
             detailPage.style.display = 'block';
             settingsPage.style.display = 'none';
             renderSelectedVehicle();
         } else if (path === '/settings') {
             mainPage.style.display = 'none';
+            vehiclesPage.style.display = 'none';
             detailPage.style.display = 'none';
             settingsPage.style.display = 'block';
             updateThemeDropdown();
@@ -278,7 +296,73 @@ function renderPage() {
     }
 }
 
-// Bottom Navigation Functions
+function renderDashboard() {
+    try {
+        const totalVehicles = document.getElementById('totalVehicles');
+        const totalPendingServices = document.getElementById('totalPendingServices');
+        const totalServiceCost = document.getElementById('totalServiceCost');
+        const recentActivityList = document.getElementById('recentActivity');
+        if (!totalVehicles || !totalPendingServices || !totalServiceCost || !recentActivityList) {
+            console.error('Dashboard elements not found');
+            return;
+        }
+
+        // Calculate totals
+        const vehicleCount = vehicles.length;
+        const pendingServiceCount = vehicles.reduce((sum, vehicle) => sum + (vehicle.pendingServices || []).length, 0);
+        const totalCost = vehicles.reduce((sum, vehicle) => {
+            return sum + (vehicle.completedServices || []).reduce((subSum, service) => subSum + (parseFloat(service.cost) || 0), 0);
+        }, 0);
+
+        // Update summary
+        totalVehicles.textContent = vehicleCount;
+        totalPendingServices.textContent = pendingServiceCount;
+        totalServiceCost.textContent = formatCurrency(totalCost);
+
+        // Populate recent activity
+        recentActivityList.innerHTML = '';
+        const allServices = [];
+        vehicles.forEach(vehicle => {
+            (vehicle.completedServices || []).forEach(service => {
+                allServices.push({
+                    vehicleId: vehicle.id,
+                    vehicleName: vehicle.name,
+                    service: { ...service, date: new Date(service.date) }
+                });
+            });
+        });
+
+        // Sort services by date (newest first) and take top 3
+        allServices.sort((a, b) => b.service.date - a.service.date);
+        const recentServices = allServices.slice(0, 3);
+
+        if (recentServices.length === 0) {
+            recentActivityList.innerHTML = '<p style="padding: 16px;">No recent activity</p>';
+        } else {
+            recentServices.forEach(({ vehicleId, vehicleName, service }) => {
+                const serviceItem = document.createElement('div');
+                serviceItem.className = 'recent-service-item';
+                serviceItem.setAttribute('data-vehicle-id', vehicleId);
+                const description = service.description || 'Unnamed service';
+                // Assume priority is not tracked for completed services; use 'Low' as default if needed
+                const priority = service.priority || 'Low';
+                serviceItem.innerHTML = `
+                    <span class="material-icons">build</span>
+                    <div class="priority-dot priority-${priority.toLowerCase()}"></div>
+                    <span>${description} on ${vehicleName} - ${service.date.toLocaleDateString()}</span>
+                `;
+                serviceItem.addEventListener('click', () => {
+                    navigateTo(`/vehicle/${vehicleId}`);
+                });
+                recentActivityList.appendChild(serviceItem);
+            });
+        }
+    } catch (e) {
+        console.error('Error in renderDashboard:', e);
+        showSnackbar('Failed to render dashboard');
+    }
+}
+
 function updateActiveNavItem(target) {
     const navItems = document.querySelectorAll('.mdc-bottom-navigation__item');
     navItems.forEach(item => item.classList.remove('mdc-bottom-navigation__item--active'));
@@ -288,16 +372,37 @@ function updateActiveNavItem(target) {
 function navigateToMainPage() {
     try {
         const mainPage = document.getElementById('mainPage');
+        const vehiclesPage = document.getElementById('vehiclesPage');
         const detailPage = document.getElementById('detailPage');
         const settingsPage = document.getElementById('settingsPage');
         mainPage.style.display = 'block';
+        vehiclesPage.style.display = 'none';
         detailPage.style.display = 'none';
         settingsPage.style.display = 'none';
-        renderVehicleList();
+        renderDashboard();
         updateActiveNavItem(document.querySelector('.mdc-bottom-navigation__item[aria-label="Navigate to Home"]'));
         navigateTo('/');
     } catch (e) {
         console.error('Error in navigateToMainPage:', e);
+        showSnackbar('Navigation failed');
+    }
+}
+
+function navigateToVehiclesPage() {
+    try {
+        const mainPage = document.getElementById('mainPage');
+        const vehiclesPage = document.getElementById('vehiclesPage');
+        const detailPage = document.getElementById('detailPage');
+        const settingsPage = document.getElementById('settingsPage');
+        mainPage.style.display = 'none';
+        vehiclesPage.style.display = 'block';
+        detailPage.style.display = 'none';
+        settingsPage.style.display = 'none';
+        renderVehicleList();
+        updateActiveNavItem(document.querySelector('.mdc-bottom-navigation__item[aria-label="Navigate to Vehicles"]'));
+        navigateTo('/vehicles');
+    } catch (e) {
+        console.error('Error in navigateToVehiclesPage:', e);
         showSnackbar('Navigation failed');
     }
 }
@@ -326,7 +431,7 @@ function navigateToSettings() {
     try {
         updateActiveNavItem(document.querySelector('.mdc-bottom-navigation__item[aria-label="Navigate to Settings"]'));
         navigateTo('/settings');
-        toggleHamburgerMenu(); // Close the hamburger menu after action
+        toggleHamburgerMenu();
     } catch (e) {
         console.error('Error in navigateToSettings:', e);
         showSnackbar('Navigation failed');
@@ -366,12 +471,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 returnToTopButton.classList.remove('show');
             }
         });
-
         returnToTopButton.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     } else {
         console.warn('Return to Top button not found');

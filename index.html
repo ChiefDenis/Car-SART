@@ -15,6 +15,100 @@
     <link rel="stylesheet" href="styles/snackbar.css">
     <link rel="stylesheet" href="styles/navigation-drawer.css">
     <link rel="stylesheet" href="styles/bottom-nav.css">
+    <!-- Inline styles for dashboard enhancements -->
+    <style>
+        .welcome-message {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            color: var(--md-sys-color-on-surface, #1c1b1f);
+            margin: 16px 16px 8px;
+        }
+        body.dark .welcome-message {
+            color: var(--md-sys-color-on-surface, #e6e0e9);
+        }
+        .dashboard-divider {
+            border-top: 1px solid var(--md-sys-color-outline, #79747e);
+            margin: 16px 0;
+        }
+        body.dark .dashboard-divider {
+            border-top: 1px solid var(--md-sys-color-outline, #938f99);
+        }
+        .summary-card {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .summary-card:hover {
+            transform: scale(1.02);
+        }
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin: 6px;
+            border-radius: 16px;
+            background-color: var(--md-sys-color-primary-container, #eaddff);
+            color: var(--md-sys-color-on-primary-container, #21005d);
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            gap: 8px;
+        }
+        body.dark .summary-chip {
+            background-color: var(--md-sys-color-primary-container, #4f378b);
+            color: var(--md-sys-color-on-primary-container, #d0bcff);
+        }
+        .recent-service-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--md-sys-color-outline, #79747e);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .recent-service-item:hover {
+            background-color: var(--md-sys-color-surface-container-highest, #e6e0e9);
+        }
+        body.dark .recent-service-item {
+            border-bottom: 1px solid var(--md-sys-color-outline, #938f99);
+        }
+        body.dark .recent-service-item:hover {
+            background-color: var(--md-sys-color-surface-container-highest, #2b2930);
+        }
+        .recent-service-item .material-icons {
+            margin-right: 12px;
+            color: var(--md-sys-color-primary, #6750a4);
+        }
+        body.dark .recent-service-item .material-icons {
+            color: var(--md-sys-color-primary, #d0bcff);
+        }
+        .recent-service-item span {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface, #1c1b1f);
+            max-width: 80%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        body.dark .recent-service-item span {
+            color: var(--md-sys-color-on-surface, #e6e0e9);
+        }
+        .priority-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .priority-high {
+            background-color: var(--md-sys-color-error, #b3261e);
+        }
+        .priority-medium {
+            background-color: var(--md-sys-color-warning, #f4b400);
+        }
+        .priority-low {
+            background-color: var(--md-sys-color-success, #2e7d32);
+        }
+    </style>
     <!-- Load jsPDF and jspdf-autotable locally -->
     <script src="app/lib/jspdf.umd.min.js"></script>
     <script src="app/lib/jspdf.plugin.autotable.min.js"></script>
@@ -56,8 +150,39 @@
     <div id="scrim" class="scrim" onclick="toggleHamburgerMenu()"></div>
     <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="restoreData(event)">
 
-    <!-- Main Page -->
+    <!-- Home Page (Dashboard) -->
     <div id="mainPage">
+        <p class="welcome-message">Welcome to Car Service Tracker</p>
+        <h1>Car Service Tracker</h1>
+        <button class="material-button action-btn" onclick="openVehicleModal()">
+            <span class="material-icons">add</span>
+        </button>
+        <div class="card summary-card" onclick="navigateTo('/vehicles')">
+            <h2>Summary</h2>
+            <div id="dashboardSummary">
+                <div class="summary-chip">
+                    <span class="material-icons">directions_car</span>
+                    <span>Total Vehicles: <span id="totalVehicles">0</span></span>
+                </div>
+                <div class="summary-chip">
+                    <span class="material-icons">build</span>
+                    <span>Pending Services: <span id="totalPendingServices">0</span></span>
+                </div>
+                <div class="summary-chip">
+                    <span class="material-icons">monetization_on</span>
+                    <span>Total Service Cost: <span id="totalServiceCost">0</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-divider"></div>
+        <div class="card">
+            <h2>Recent Activity</h2>
+            <div id="recentActivity" class="recent-activity-list"></div>
+        </div>
+    </div>
+
+    <!-- Vehicles Page -->
+    <div id="vehiclesPage" style="display: none;">
         <h1>Car Service Tracker</h1>
         <button class="material-button action-btn" onclick="openVehicleModal()">
             <span class="material-icons">add</span>
@@ -71,7 +196,7 @@
     <!-- Detail Page -->
     <div id="detailPage" style="display: none;">
         <div class="detail-top-bar">
-            <button class="material-button icon-button back-button" onclick="navigateTo('/')" aria-label="Go back">
+            <button class="material-button icon-button back-button" onclick="goBack()" aria-label="Go back">
                 <span class="material-icons">arrow_back</span>
             </button>
             <div class="search-container">
@@ -86,15 +211,11 @@
                 </div>
             </div>
         </div>
-        <h1 id="detailVehicleName"></h1>
+        <h1 id="detailVehicleName" onclick="openVehicleSelectModal()" style="cursor: pointer;" aria-label="Select another vehicle"></h1>
         <p id="detailVehicleNotes" class="notes"></p>
-
-        <!-- Add Service Button -->
         <button class="material-button action-btn service-action-btn" onclick="openServiceModal()">
             <span class="material-icons">add</span>
         </button>
-
-        <!-- Current Information Strip -->
         <div class="info-strip">
             <span><strong>Date:</strong> <span id="currentDateDisplay"></span></span>
             <span><strong>Mileage:</strong> <span id="currentMileageDisplay"></span></span>
@@ -102,8 +223,6 @@
                 <span class="material-icons">edit</span>
             </button>
         </div>
-
-        <!-- Services -->
         <div class="card">
             <h2>Services</h2>
             <div class="services-list" id="detailServicesList">
@@ -119,7 +238,7 @@
     <div id="settingsPage" style="display: none;">
         <div class="settings-content" style="padding-top: 56px;">
             <div class="detail-top-bar">
-                <button class="material-button icon-button back-button" onclick="navigateTo('/')" aria-label="Go back">
+                <button class="material-button icon-button back-button" onclick="goBack()" aria-label="Go back">
                     <span class="material-icons">arrow_back</span>
                 </button>
             </div>
@@ -347,6 +466,17 @@
         </div>
     </div>
 
+    <!-- Vehicle Select Modal -->
+    <div id="vehicleSelectModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="material-button close-btn" onclick="closeVehicleSelectModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2>Select Vehicle</h2>
+            <div id="vehicleSelectList" class="vehicle-list"></div>
+        </div>
+    </div>
+
     <!-- Service Modal -->
     <div id="serviceModal" class="modal" style="display: none;">
         <div class="modal-content">
@@ -425,6 +555,10 @@
             <span class="material-icons">home</span>
             <span class="mdc-bottom-navigation__label">Home</span>
         </button>
+        <button class="mdc-bottom-navigation__item" onclick="navigateToVehiclesPage()" aria-label="Navigate to Vehicles">
+            <span class="material-icons">directions_car</span>
+            <span class="mdc-bottom-navigation__label">Vehicles</span>
+        </button>
         <button class="mdc-bottom-navigation__item" onclick="navigateToShop()" aria-label="Navigate to Shop">
             <span class="material-icons">store</span>
             <span class="mdc-bottom-navigation__label">Shop</span>
@@ -445,7 +579,5 @@
     <script src="app/services.js"></script>
     <script src="app/current-info.js"></script>
     <script src="app/modals.js"></script>
-    
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9393ee608957bff1',t:'MTc0NjE1MTI5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
