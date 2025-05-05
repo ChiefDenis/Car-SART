@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Service Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="styles/global.css">
+    <link rel="stylesheet" href="styles/top-bar.css">
+    <link rel="stylesheet" href="styles/vehicle-list.css">
+    <link rel="stylesheet" href="styles/services.css">
+    <link rel="stylesheet" href="styles/info-strip.css">
+    <link rel="stylesheet" href="styles/modal.css">
+    <link rel="stylesheet" href="styles/snackbar.css">
+    <link rel="stylesheet" href="styles/navigation-drawer.css">
+    <link rel="stylesheet" href="styles/bottom-nav.css">
+    <!-- Inline styles for dashboard enhancements -->
+    <style>
+        .welcome-message {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            color: var(--md-sys-color-on-surface, #1c1b1f);
+            margin: 16px 16px 8px;
+        }
+        body.dark .welcome-message {
+            color: var(--md-sys-color-on-surface, #e6e0e9);
+        }
+        .dashboard-divider {
+            border-top: 1px solid var(--md-sys-color-outline, #79747e);
+            margin: 16px 0;
+        }
+        body.dark .dashboard-divider {
+            border-top: 1px solid var(--md-sys-color-outline, #938f99);
+        }
+        .summary-card {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .summary-card:hover {
+            transform: scale(1.02);
+        }
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin: 6px;
+            border-radius: 16px;
+            background-color: var(--md-sys-color-primary-container, #eaddff);
+            color: var(--md-sys-color-on-primary-container, #21005d);
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            gap: 8px;
+        }
+        body.dark .summary-chip {
+            background-color: var(--md-sys-color-primary-container, #4f378b);
+            color: var(--md-sys-color-on-primary-container, #d0bcff);
+        }
+        .recent-service-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--md-sys-color-outline, #79747e);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .recent-service-item:hover {
+            background-color: var(--md-sys-color-surface-container-highest, #e6e0e9);
+        }
+        body.dark .recent-service-item {
+            border-bottom: 1px solid var(--md-sys-color-outline, #938f99);
+        }
+        body.dark .recent-service-item:hover {
+            background-color: var(--md-sys-color-surface-container-highest, #2b2930);
+        }
+        .recent-service-item .material-icons {
+            margin-right: 12px;
+            color: var(--md-sys-color-primary, #6750a4);
+        }
+        body.dark .recent-service-item .material-icons {
+            color: var(--md-sys-color-primary, #d0bcff);
+        }
+        .recent-service-item span {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface, #1c1b1f);
+            max-width: 80%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        body.dark .recent-service-item span {
+            color: var(--md-sys-color-on-surface, #e6e0e9);
+        }
+        .priority-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .priority-high {
+            background-color: var(--md-sys-color-error, #b3261e);
+        }
+        .priority-medium {
+            background-color: var(--md-sys-color-warning, #f4b400);
+        }
+        .priority-low {
+            background-color: var(--md-sys-color-success, #2e7d32);
+        }
+    </style>
+    <!-- Load jsPDF and jspdf-autotable locally -->
+    <script src="app/lib/jspdf.umd.min.js"></script>
+    <script src="app/lib/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="menu-container">
+            <button class="material-button icon-button menu-button" onclick="toggleHamburgerMenu()" aria-label="Open navigation menu">
+                <span class="material-icons">menu</span>
+            </button>
+            <div id="hamburgerMenu" class="navigation-drawer">
+                <div class="navigation-drawer-header">
+                    <h3>Menu</h3>
+                    <button class="material-button icon-btn" onclick="toggleHamburgerMenu()" aria-label="Close navigation menu">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="navigation-drawer-items">
+                    <button class="navigation-item" onclick="backupData()">
+                        <span class="material-icons">file_download</span>
+                        <span class="navigation-label">Backup Data</span>
+                    </button>
+                    <button class="navigation-item" onclick="document.getElementById('restoreInput').click()">
+                        <span class="material-icons">file_upload</span>
+                        <span class="navigation-label">Restore Data</span>
+                    </button>
+                    <button class="navigation-item" onclick="toggleDarkMode()">
+                        <span class="material-icons">dark_mode</span>
+                        <span class="navigation-label">Toggle Dark Mode</span>
+                    </button>
+                    <button class="navigation-item" onclick="navigateTo('/settings'); toggleHamburgerMenu()">
+                        <span class="material-icons">settings</span>
+                        <span class="navigation-label">Settings</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="scrim" class="scrim" onclick="toggleHamburgerMenu()"></div>
+    <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="restoreData(event)">
+
+    <!-- Home Page (Dashboard) -->
+    <div id="mainPage">
+        <p class="welcome-message">Welcome to Car Service Tracker</p>
+        <h1>Car Service Tracker</h1>
+        <button class="material-button action-btn" onclick="openVehicleModal()">
+            <span class="material-icons">add</span>
+        </button>
+        <div class="card summary-card" onclick="navigateTo('/vehicles')">
+            <h2>Summary</h2>
+            <div id="dashboardSummary">
+                <div class="summary-chip">
+                    <span class="material-icons">directions_car</span>
+                    <span>Total Vehicles: <span id="totalVehicles">0</span></span>
+                </div>
+                <div class="summary-chip">
+                    <span class="material-icons">build</span>
+                    <span>Pending Services: <span id="totalPendingServices">0</span></span>
+                </div>
+                <div class="summary-chip">
+                    <span class="material-icons">monetization_on</span>
+                    <span>Total Service Cost: <span id="totalServiceCost">0</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-divider"></div>
+        <div class="card">
+            <h2>Recent Activity</h2>
+            <div id="recentActivity" class="recent-activity-list"></div>
+        </div>
+    </div>
+
+    <!-- Vehicles Page -->
+    <div id="vehiclesPage" style="display: none;">
+        <h1>Car Service Tracker</h1>
+        <button class="material-button action-btn" onclick="openVehicleModal()">
+            <span class="material-icons">add</span>
+        </button>
+        <div class="card">
+            <h2>Vehicles</h2>
+            <div id="vehicleList" class="vehicle-list"></div>
+        </div>
+    </div>
+
+    <!-- Detail Page -->
+    <div id="detailPage" style="display: none;">
+        <div class="detail-top-bar">
+            <button class="material-button icon-button back-button" onclick="goBack()" aria-label="Go back">
+                <span class="material-icons">arrow_back</span>
+            </button>
+            <div class="search-container">
+                <button class="material-button icon-button search-button" onclick="toggleSearch()" aria-label="Toggle search">
+                    <span class="material-icons">search</span>
+                </button>
+                <div class="search-field" style="display: none;">
+                    <input type="text" id="servicesSearch" placeholder="Search services..." aria-label="Search services">
+                    <button class="material-button icon-button clear-search" onclick="clearSearch()" aria-label="Clear search">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <h1 id="detailVehicleName" onclick="openVehicleSelectModal()" style="cursor: pointer;" aria-label="Select another vehicle"></h1>
+        <p id="detailVehicleNotes" class="notes"></p>
+        <button class="material-button action-btn service-action-btn" onclick="openServiceModal()">
+            <span class="material-icons">add</span>
+        </button>
+        <div class="info-strip">
+            <span><strong>Date:</strong> <span id="currentDateDisplay"></span></span>
+            <span><strong>Mileage:</strong> <span id="currentMileageDisplay"></span></span>
+            <button class="edit-info-btn" onclick="openCurrentInfoModal()">
+                <span class="material-icons">edit</span>
+            </button>
+        </div>
+        <div class="card">
+            <h2>Services</h2>
+            <div class="services-list" id="detailServicesList">
+                <div id="detailServicesBody"></div>
+                <button class="material-button export-btn" onclick="exportServiceRecordsToPDF()">
+                    <span class="material-icons">download</span> Export to PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div id="settingsPage" style="display: none;">
+        <div class="settings-content" style="padding-top: 56px;">
+            <div class="detail-top-bar">
+                <button class="material-button icon-button back-button" onclick="goBack()" aria-label="Go back">
+                    <span class="material-icons">arrow_back</span>
+                </button>
+            </div>
+            <div class="card">
+                <h2>Settings</h2>
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="themeToggle">Theme:</label>
+                        <select id="themeToggle" class="material-input" onchange="updateTheme(this.value)">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="unitSystem">Unit System:</label>
+                        <select id="unitSystem" class="material-input" onchange="updateUnitSystem(this.value)">
+                            <option value="metric">Metric (km)</option>
+                            <option value="uk-imperial">UK Imperial (mi)</option>
+                            <option value="us-imperial">US Imperial (mi)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="defaultCurrency">Default Currency:</label>
+                        <select id="defaultCurrency" class="material-input" onchange="updateDefaultCurrency(this.value)">
+                            <option value="">Custom (Blank)</option>
+                            <option value="AED">AED - United Arab Emirates Dirham</option>
+                            <option value="AFN">AFN - Afghan Afghani</option>
+                            <option value="ALL">ALL - Albanian Lek</option>
+                            <option value="AMD">AMD - Armenian Dram</option>
+                            <option value="ANG">ANG - Netherlands Antillean Guilder</option>
+                            <option value="AOA">AOA - Angolan Kwanza</option>
+                            <option value="ARS">ARS - Argentine Peso</option>
+                            <option value="AUD">AUD - Australian Dollar</option>
+                            <option value="AWG">AWG - Aruban Florin</option>
+                            <option value="AZN">AZN - Azerbaijani Manat</option>
+                            <option value="BAM">BAM - Bosnia-Herzegovina Convertible Mark</option>
+                            <option value="BBD">BBD - Barbadian Dollar</option>
+                            <option value="BDT">BDT - Bangladeshi Taka</option>
+                            <option value="BGN">BGN - Bulgarian Lev</option>
+                            <option value="BHD">BHD - Bahraini Dinar</option>
+                            <option value="BIF">BIF - Burundian Franc</option>
+                            <option value="BMD">BMD - Bermudian Dollar</option>
+                            <option value="BND">BND - Brunei Dollar</option>
+                            <option value="BOB">BOB - Bolivian Boliviano</option>
+                            <option value="BRL">BRL - Brazilian Real</option>
+                            <option value="BSD">BSD - Bahamian Dollar</option>
+                            <option value="BTN">BTN - Bhutanese Ngultrum</option>
+                            <option value="BWP">BWP - Botswanan Pula</option>
+                            <option value="BYN">BYN - Belarusian Ruble</option>
+                            <option value="BZD">BZD - Belize Dollar</option>
+                            <option value="CAD">CAD - Canadian Dollar</option>
+                            <option value="CDF">CDF - Congolese Franc</option>
+                            <option value="CHF">CHF - Swiss Franc</option>
+                            <option value="CLP">CLP - Chilean Peso</option>
+                            <option value="CNY">CNY - Chinese Yuan</option>
+                            <option value="COP">COP - Colombian Peso</option>
+                            <option value="CRC">CRC - Costa Rican Colón</option>
+                            <option value="CUP">CUP - Cuban Peso</option>
+                            <option value="CVE">CVE - Cape Verdean Escudo</option>
+                            <option value="CZK">CZK - Czech Koruna</option>
+                            <option value="DJF">DJF - Djiboutian Franc</option>
+                            <option value="DKK">DKK - Danish Krone</option>
+                            <option value="DOP">DOP - Dominican Peso</option>
+                            <option value="DZD">DZD - Algerian Dinar</option>
+                            <option value="EGP">EGP - Egyptian Pound</option>
+                            <option value="ERN">ERN - Eritrean Nakfa</option>
+                            <option value="ETB">ETB - Ethiopian Birr</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="FJD">FJD - Fijian Dollar</option>
+                            <option value="FKP">FKP - Falkland Islands Pound</option>
+                            <option value="FOK">FOK - Faroese Króna</option>
+                            <option value="GBP">GBP - British Pound Sterling</option>
+                            <option value="GEL">GEL - Georgian Lari</option>
+                            <option value="GGP">GGP - Guernsey Pound</option>
+                            <option value="GHS">GHS - Ghanaian Cedi</option>
+                            <option value="GIP">GIP - Gibraltar Pound</option>
+                            <option value="GMD">GMD - Gambian Dalasi</option>
+                            <option value="GNF">GNF - Guinean Franc</option>
+                            <option value="GTQ">GTQ - Guatemalan Quetzal</option>
+                            <option value="GYD">GYD - Guyanaese Dollar</option>
+                            <option value="HKD">HKD - Hong Kong Dollar</option>
+                            <option value="HNL">HNL - Honduran Lempira</option>
+                            <option value="HRK">HRK - Croatian Kuna</option>
+                            <option value="HTG">HTG - Haitian Gourde</option>
+                            <option value="HUF">HUF - Hungarian Forint</option>
+                            <option value="IDR">IDR - Indonesian Rupiah</option>
+                            <option value="ILS">ILS - Israeli New Shekel</option>
+                            <option value="IMP">IMP - Manx Pound</option>
+                            <option value="INR">INR - Indian Rupee</option>
+                            <option value="IQD">IQD - Iraqi Dinar</option>
+                            <option value="IRR">IRR - Iranian Rial</option>
+                            <option value="ISK">ISK - Icelandic Króna</option>
+                            <option value="JEP">JEP - Jersey Pound</option>
+                            <option value="JMD">JMD - Jamaican Dollar</option>
+                            <option value="JOD">JOD - Jordanian Dinar</option>
+                            <option value="JPY">JPY - Japanese Yen</option>
+                            <option value="KES">KES - Kenyan Shilling</option>
+                            <option value="KGS">KGS - Kyrgystani Som</option>
+                            <option value="KHR">KHR - Cambodian Riel</option>
+                            <option value="KID">KID - Kiribati Dollar</option>
+                            <option value="KMF">KMF - Comorian Franc</option>
+                            <option value="KRW">KRW - South Korean Won</option>
+                            <option value="KWD">KWD - Kuwaiti Dinar</option>
+                            <option value="KYD">KYD - Cayman Islands Dollar</option>
+                            <option value="KZT">KZT - Kazakhstani Tenge</option>
+                            <option value="LAK">LAK - Laotian Kip</option>
+                            <option value="LBP">LBP - Lebanese Pound</option>
+                            <option value="LKR">LKR - Sri Lankan Rupee</option>
+                            <option value="LRD">LRD - Liberian Dollar</option>
+                            <option value="LSL">LSL - Lesotho Loti</option>
+                            <option value="LYD">LYD - Libyan Dinar</option>
+                            <option value="MAD">MAD - Moroccan Dirham</option>
+                            <option value="MDL">MDL - Moldovan Leu</option>
+                            <option value="MGA">MGA - Malagasy Ariary</option>
+                            <option value="MKD">MKD - Macedonian Denar</option>
+                            <option value="MMK">MMK - Myanma Kyat</option>
+                            <option value="MNT">MNT - Mongolian Tugrik</option>
+                            <option value="MOP">MOP - Macanese Pataca</option>
+                            <option value="MRU">MRU - Mauritanian Ouguiya</option>
+                            <option value="MUR">MUR - Mauritian Rupee</option>
+                            <option value="MVR">MVR - Maldivian Rufiyaa</option>
+                            <option value="MWK">MWK - Malawian Kwacha</option>
+                            <option value="MXN">MXN - Mexican Peso</option>
+                            <option value="MYR">MYR - Malaysian Ringgit</option>
+                            <option value="MZN">MZN - Mozambican Metical</option>
+                            <option value="NAD">NAD - Namibian Dollar</option>
+                            <option value="NGN">NGN - Nigerian Naira</option>
+                            <option value="NIO">NIO - Nicaraguan Córdoba</option>
+                            <option value="NOK">NOK - Norwegian Krone</option>
+                            <option value="NPR">NPR - Nepalese Rupee</option>
+                            <option value="NZD">NZD - New Zealand Dollar</option>
+                            <option value="OMR">OMR - Omani Rial</option>
+                            <option value="PAB">PAB - Panamanian Balboa</option>
+                            <option value="PEN">PEN - Peruvian Nuevo Sol</option>
+                            <option value="PGK">PGK - Papua New Guinean Kina</option>
+                            <option value="PHP">PHP - Philippine Peso</option>
+                            <option value="PKR">PKR - Pakistani Rupee</option>
+                            <option value="PLN">PLN - Polish Zloty</option>
+                            <option value="PYG">PYG - Paraguayan Guarani</option>
+                            <option value="QAR">QAR - Qatari Rial</option>
+                            <option value="RON">RON - Romanian Leu</option>
+                            <option value="RSD">RSD - Serbian Dinar</option>
+                            <option value="RUB">RUB - Russian Ruble</option>
+                            <option value="RWF">RWF - Rwandan Franc</option>
+                            <option value="SAR">SAR - Saudi Riyal</option>
+                            <option value="SBD">SBD - Solomon Islands Dollar</option>
+                            <option value="SCR">SCR - Seychellois Rupee</option>
+                            <option value="SDG">SDG - Sudanese Pound</option>
+                            <option value="SEK">SEK - Swedish Krona</option>
+                            <option value="SGD">SGD - Singapore Dollar</option>
+                            <option value="SHP">SHP - Saint Helena Pound</option>
+                            <option value="SLE">SLE - Sierra Leonean Leone</option>
+                            <option value="SOS">SOS - Somali Shilling</option>
+                            <option value="SRD">SRD - Surinamese Dollar</option>
+                            <option value="SSP">SSP - South Sudanese Pound</option>
+                            <option value="STN">STN - São Tomé and Príncipe Dobra</option>
+                            <option value="SYP">SYP - Syrian Pound</option>
+                            <option value="SZL">SZL - Swazi Lilangeni</option>
+                            <option value="THB">THB - Thai Baht</option>
+                            <option value="TJS">TJS - Tajikistani Somoni</option>
+                            <option value="TMT">TMT - Turkmenistani Manat</option>
+                            <option value="TND">TND - Tunisian Dinar</option>
+                            <option value="TOP">TOP - Tongan Pa'anga</option>
+                            <option value="TRY">TRY - Turkish Lira</option>
+                            <option value="TTD">TTD - Trinidad and Tobago Dollar</option>
+                            <option value="TVD">TVD - Tuvaluan Dollar</option>
+                            <option value="TWD">TWD - New Taiwan Dollar</option>
+                            <option value="TZS">TZS - Tanzanian Shilling</option>
+                            <option value="UAH">UAH - Ukrainian Hryvnia</option>
+                            <option value="UGX">UGX - Ugandan Shilling</option>
+                            <option value="USD">USD - United States Dollar</option>
+                            <option value="UYU">UYU - Uruguayan Peso</option>
+                            <option value="UZS">UZS - Uzbekistan Som</option>
+                            <option value="VES">VES - Venezuelan Bolívar Soberano</option>
+                            <option value="VND">VND - Vietnamese Dong</option>
+                            <option value="VUV">VUV - Vanuatu Vatu</option>
+                            <option value="WST">WST - Samoan Tala</option>
+                            <option value="XAF">XAF - CFA Franc BEAC</option>
+                            <option value="XCD">XCD - East Caribbean Dollar</option>
+                            <option value="XOF">XOF - CFA Franc BCEAO</option>
+                            <option value="XPF">XPF - CFP Franc</option>
+                            <option value="YER">YER - Yemeni Rial</option>
+                            <option value="ZAR">ZAR - South African Rand</option>
+                            <option value="ZMW">ZMW - Zambian Kwacha</option>
+                            <option value="ZWL">ZWL - Zimbabwean Dollar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="material-button" onclick="backupData()">
+                            <span class="material-icons">file_download</span> Backup Data
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <button class="material-button" onclick="document.getElementById('restoreInput').click()">
+                            <span class="material-icons">file_upload</span> Restore Data
+                        </button>
+                    </div>
+                    <p class="notes">Configure your app's theme, unit system, currency, and manage data backups.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Modal -->
+    <div id="vehicleModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="material-button close-btn" onclick="closeVehicleModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2 id="vehicleModalTitle">Add Vehicle</h2>
+            <div class="form-container">
+                <div class="form-group">
+                    <input type="text" id="vehicleName" class="material-input" placeholder=" " required>
+                    <label for="vehicleName">Vehicle Name</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="vehicleNotes" class="material-input" placeholder=" ">
+                    <label for="vehicleNotes">Notes</label>
+                </div>
+                <div class="form-buttons">
+                    <button class="material-button" id="vehicleSubmit" data-editing="false" data-index="-1" onclick="submitVehicle()">Add Vehicle</button>
+                    <button class="material-button cancel-btn" id="vehicleCancel" onclick="closeVehicleModal()" style="display: none;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Select Modal -->
+    <div id="vehicleSelectModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="material-button close-btn" onclick="closeVehicleSelectModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2>Select Vehicle</h2>
+            <div id="vehicleSelectList" class="vehicle-list"></div>
+        </div>
+    </div>
+
+    <!-- Service Modal -->
+    <div id="serviceModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="material-button close-btn" onclick="closeServiceModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2>Add Service or Repair</h2>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="serviceType" value="pending" checked onclick="handleServiceTypeChange('pending')">
+                    Pending Service
+                </label>
+                <label>
+                    <input type="radio" name="serviceType" value="completed" onclick="handleServiceTypeChange('completed')">
+                    Completed Service
+                </label>
+            </div>
+            <div id="serviceFormContainer" class="form-container"></div>
+        </div>
+    </div>
+
+    <!-- Current Info Modal -->
+    <div id="currentInfoModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="material-button close-btn" onclick="closeCurrentInfoModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2>Edit Current Information</h2>
+            <div class="form-container">
+                <div class="form-group">
+                    <input type="date" id="modalCurrentDate" class="material-input" required>
+                    <label for="modalCurrentDate">Current Date</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="modalCurrentMileage" class="material-input" min="0" required>
+                    <label for="modalCurrentMileage">Current Mileage</label>
+                </div>
+                <div class="form-buttons">
+                    <button class="material-button" onclick="submitCurrentInfo()">Update</button>
+                    <button class="material-button cancel-btn" onclick="closeCurrentInfoModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Detail Modal -->
+    <div id="serviceDetailModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="material-button close-btn" onclick="closeServiceDetailModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2>Service Details</h2>
+            <ul id="serviceDetailList" class="service-detail-list"></ul>
+            <div class="modal-actions">
+                <button class="material-button edit-btn" id="serviceDetailEdit" style="display: none;" onclick="editServiceFromModal()">
+                    <span class="material-icons">edit</span> Edit
+                </button>
+                <button class="material-button delete-btn" id="serviceDetailDelete" style="display: none;" onclick="deleteServiceFromModal()">
+                    <span class="material-icons">delete</span> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snackbar -->
+    <div id="snackbar"></div>
+
+    <!-- Return to Top button -->
+    <button id="return-to-top" title="Return to Top" aria-label="Return to Top">
+        <span class="material-icons">arrow_upward</span>
+    </button>
+
+    <!-- MD3 Bottom Navigation Bar -->
+    <nav class="mdc-bottom-navigation">
+        <button class="mdc-bottom-navigation__item mdc-bottom-navigation__item--active" onclick="navigateToMainPage()" aria-label="Navigate to Home">
+            <span class="material-icons">home</span>
+            <span class="mdc-bottom-navigation__label">Home</span>
+        </button>
+        <button class="mdc-bottom-navigation__item" onclick="navigateToVehiclesPage()" aria-label="Navigate to Vehicles">
+            <span class="material-icons">directions_car</span>
+            <span class="mdc-bottom-navigation__label">Vehicles</span>
+        </button>
+        <button class="mdc-bottom-navigation__item" onclick="navigateToShop()" aria-label="Navigate to Shop">
+            <span class="material-icons">store</span>
+            <span class="mdc-bottom-navigation__label">Shop</span>
+        </button>
+        <button class="mdc-bottom-navigation__item" onclick="navigateToNotifications()" aria-label="Navigate to Notifications">
+            <span class="material-icons">notifications</span>
+            <span class="mdc-bottom-navigation__label">Notifications</span>
+        </button>
+        <button class="mdc-bottom-navigation__item" onclick="navigateTo('/settings')" aria-label="Navigate to Settings">
+            <span class="material-icons">settings</span>
+            <span class="mdc-bottom-navigation__label">Settings</span>
+        </button>
+    </nav>
+
+    <script src="app/core.js"></script>
+    <script src="app/data.js"></script>
+    <script src="app/vehicle-list.js"></script>
+    <script src="app/services.js"></script>
+    <script src="app/current-info.js"></script>
+    <script src="app/modals.js"></script>
+</body>
+</html>
